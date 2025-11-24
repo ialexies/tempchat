@@ -93,10 +93,6 @@ export default function LoginPage() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <div className="mt-6 text-sm text-gray-500 text-center">
-          <p>Default users: user1, user2, user3, alex</p>
-          <p>Default passwords: user1pass, user2pass, user3pass</p>
-        </div>
       </div>
     </div>
   );
