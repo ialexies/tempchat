@@ -1,0 +1,269 @@
+# Cursor Rules for TempChat Project
+
+## Project Overview
+This is a Next.js 14 chat application using TypeScript, Tailwind CSS, and file-based storage. The project uses the App Router architecture.
+
+## Technology Stack
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript (strict mode enabled)
+- **Styling**: Tailwind CSS
+- **Authentication**: JWT with bcryptjs
+- **Storage**: File-based JSON storage (users.json, messages.json)
+
+## Code Style & Conventions
+
+### TypeScript
+- Always use TypeScript with strict mode enabled
+- Prefer explicit types over `any` - use `unknown` if type is truly unknown
+- Use interfaces from `@/types` for shared data structures (User, Message, Attachment, etc.)
+- Export types and interfaces from `types/index.ts` for shared usage
+- Use async/await over promises chains
+- Handle errors explicitly with try-catch blocks
+
+### Next.js App Router
+- Use Server Components by default, only use 'use client' when necessary
+- Server Actions should be in separate files or at the bottom of Server Components
+- Use `async` Server Components for data fetching
+- API routes should be in `app/api/` directory following REST conventions
+- Use `cookies()` from 'next/headers' for cookie management in Server Components
+- Prefer Server Actions over API routes when possible
+
+### File Organization
+- Place reusable utilities in `lib/` directory
+- Keep type definitions in `types/index.ts`
+- API routes: `app/api/[route]/route.ts`
+- Page components: `app/[page]/page.tsx`
+- Shared components: create a `components/` directory if needed
+- Use path aliases: `@/*` maps to project root
+
+### Naming Conventions
+- Components: PascalCase (e.g., `ChatMessage.tsx`)
+- Files: kebab-case for pages/routes, camelCase for utilities
+- Functions: camelCase
+- Constants: UPPER_SNAKE_CASE
+- Types/Interfaces: PascalCase
+
+### Code Quality
+- Keep functions small and focused on a single responsibility
+- Extract reusable logic into utility functions in `lib/`
+- Use meaningful variable and function names
+- Add JSDoc comments for complex functions
+- Handle edge cases and error scenarios
+- Validate user input on both client and server side
+
+## Security Best Practices
+- Never expose JWT_SECRET or other secrets in code - use environment variables
+- Always validate and sanitize user input
+- Use httpOnly cookies for session tokens
+- Implement proper error handling that doesn't leak sensitive information
+- Use bcrypt for password hashing (already implemented)
+- Validate file uploads (type, size) before saving
+
+## Performance
+- Use Server Components to reduce client-side JavaScript
+- Implement proper loading states and error boundaries
+- Optimize images if using Next.js Image component
+- Consider pagination for message history
+- Use React.memo for expensive components if needed
+
+## Styling
+- Use Tailwind CSS utility classes
+- Follow mobile-first responsive design
+- Keep custom CSS in `app/globals.css` minimal
+- Use Tailwind's design tokens (colors, spacing) consistently
+
+## Storage & Data
+- File operations should use the utilities from `lib/storage.ts`
+- Always ensure data directory exists before file operations
+- Handle file system errors gracefully
+- Consider data validation when reading from JSON files
+
+## When Adding New Features
+1. Check if types need to be added to `types/index.ts`
+2. Create utility functions in `lib/` if reusable
+3. Use Server Components unless client-side interactivity is required
+4. Follow existing patterns for authentication and session management
+5. Update relevant type definitions before implementing features
+
+## Common Patterns
+
+### Authentication
+- Use `getSession()` from `lib/auth.ts` to check authentication in Server Components
+- Use `setSession()` and `clearSession()` for login/logout
+- Protect routes by checking session in page components or middleware
+
+### File Operations
+- Use `readUsers()`, `readMessages()`, `appendMessage()` from `lib/storage.ts`
+- Always call `ensureDataDir()` or use functions that handle it automatically
+
+### Error Handling
+- Return appropriate HTTP status codes in API routes
+- Provide user-friendly error messages
+- Log errors server-side for debugging
+
+## Linting
+
+### ESLint Configuration
+- The project uses ESLint with `eslint-config-next` (Next.js 14 recommended config)
+- Run `npm run lint` before committing code
+- Fix all linting errors before submitting code
+- Use `// eslint-disable-next-line` sparingly and only with justification
+- Prefer fixing the code over disabling rules
+
+### Linting Rules to Follow
+- **No unused variables**: Remove or prefix with underscore (`_unusedVar`)
+- **No console.log in production**: Use proper logging or remove before commit
+- **Import order**: Group imports: external → internal → relative, alphabetically within groups
+- **React hooks**: Follow rules of hooks (only call at top level, in correct order)
+- **TypeScript**: Fix all TypeScript errors - they should be treated as linting errors
+- **Accessibility**: Use semantic HTML, proper ARIA attributes when needed
+- **Performance**: Avoid unnecessary re-renders, use proper React patterns
+
+### Pre-commit Checks
+- Always run `npm run lint` locally before committing
+- Ensure TypeScript compiles without errors (`tsc --noEmit`)
+- Check for console.log statements and remove or replace with proper logging
+
+## Documentation
+
+### Code Documentation
+- **JSDoc comments**: Add JSDoc for all exported functions, classes, and complex utilities
+- **Function documentation**: Include description, parameters, return type, and examples for complex functions
+- **Type documentation**: Document complex types and interfaces with comments
+- **Inline comments**: Use comments to explain "why", not "what" - code should be self-documenting
+
+### JSDoc Format
+```typescript
+/**
+ * Verifies user password against stored hash
+ * @param username - The username to verify
+ * @param password - The plain text password
+ * @returns Promise resolving to true if password matches, false otherwise
+ * @throws {Error} If user lookup fails
+ */
+export async function verifyPassword(username: string, password: string): Promise<boolean>
+```
+
+### README Documentation
+- Keep `README.md` up to date with:
+  - Project setup instructions
+  - Environment variables required
+  - How to run development server
+  - How to build for production
+  - Project structure overview
+  - Key features and usage
+
+### API Documentation
+- Document all API routes with:
+  - HTTP method and endpoint
+  - Request body/query parameters
+  - Response format
+  - Error responses
+  - Authentication requirements
+
+### Component Documentation
+- Document complex components with:
+  - Purpose and usage
+  - Props interface
+  - Example usage
+  - Any special behavior or side effects
+
+### Comment Guidelines
+- Write self-documenting code - prefer clear names over comments
+- Use comments for business logic explanations
+- Document non-obvious workarounds or temporary solutions
+- Keep comments up to date with code changes
+- Remove commented-out code before committing
+
+## Testing
+
+### Testing Strategy
+- Write tests for critical business logic (authentication, data validation, utilities)
+- Test API routes with proper request/response validation
+- Test error handling and edge cases
+- Use integration tests for user flows
+- Consider E2E tests for critical paths (login, messaging)
+
+### Test File Organization
+- Place test files next to source files: `lib/auth.test.ts` for `lib/auth.ts`
+- Or use `__tests__` directory: `__tests__/auth.test.ts`
+- Test utilities: `lib/__tests__/` or `test-utils/` directory
+- Use descriptive test file names: `auth.test.ts`, `storage.test.ts`
+
+### Testing Framework (Recommended Setup)
+- **Unit/Integration**: Use Jest with React Testing Library for components
+- **API Testing**: Test API routes with Jest and fetch/mock requests
+- **E2E**: Consider Playwright or Cypress for end-to-end testing
+
+### Test Structure
+- Use `describe` blocks to group related tests
+- Use descriptive test names: `describe('verifyPassword', () => { ... })`
+- Follow AAA pattern: Arrange, Act, Assert
+- One assertion per test when possible (unless testing related behavior)
+
+### Example Test Structure
+```typescript
+describe('verifyPassword', () => {
+  it('should return true for correct password', async () => {
+    // Arrange
+    const username = 'user1';
+    const password = 'user1pass';
+    
+    // Act
+    const result = await verifyPassword(username, password);
+    
+    // Assert
+    expect(result).toBe(true);
+  });
+  
+  it('should return false for incorrect password', async () => {
+    // Test implementation
+  });
+});
+```
+
+### Testing Best Practices
+- **Mock external dependencies**: Mock file system operations, API calls, cookies
+- **Test edge cases**: Empty inputs, null values, boundary conditions
+- **Test error scenarios**: Invalid inputs, network failures, file system errors
+- **Keep tests isolated**: Each test should be independent and not rely on others
+- **Use meaningful assertions**: Prefer specific matchers (`toBe`, `toEqual`) over generic ones
+- **Clean up**: Reset mocks and test data after each test
+
+### Test Coverage Goals
+- Aim for high coverage on critical paths (auth, storage, API routes)
+- Don't aim for 100% coverage - focus on meaningful tests
+- Cover error paths and edge cases
+- Test user-facing functionality thoroughly
+
+### Testing Utilities
+- Create reusable test utilities in `test-utils/` or `lib/__tests__/helpers.ts`
+- Mock data factories for User, Message, etc.
+- Helper functions for setting up test environment
+- Mock implementations for file system operations
+
+### Running Tests
+- Run tests: `npm test` (when configured)
+- Watch mode: `npm test -- --watch`
+- Coverage: `npm test -- --coverage`
+- Run specific test file: `npm test auth.test.ts`
+
+### Test Data Management
+- Use factories or builders for creating test data
+- Keep test data minimal and focused
+- Use descriptive test data that explains the test case
+- Clean up test data after tests complete
+
+## Avoid
+- Don't use `any` type - use proper types or `unknown`
+- Don't mix Server and Client Component patterns unnecessarily
+- Don't hardcode secrets or configuration values
+- Don't skip error handling
+- Don't create unnecessary API routes when Server Actions suffice
+- Don't bypass TypeScript type checking
+- Don't commit code with linting errors
+- Don't disable ESLint rules without justification
+- Don't leave console.log statements in production code
+- Don't write tests that depend on external services without mocking
+- Don't skip documentation for public APIs and complex logic
+
