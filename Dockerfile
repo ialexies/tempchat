@@ -48,20 +48,8 @@ ARG NEXT_PUBLIC_GIPHY_API_KEY
 ENV NEXT_PUBLIC_GIPHY_API_KEY=${NEXT_PUBLIC_GIPHY_API_KEY:-}
 
 # Build the application
-RUN echo "=== Build Environment ===" && \
-    node --version && \
-    npm --version && \
-    echo "" && \
-    echo "=== Running Next.js Build ===" && \
-    npm run build || { \
-        echo ""; \
-        echo "=== BUILD FAILED ==="; \
-        echo "The build command exited with code $?"; \
-        echo "Check the output above for the actual error message."; \
-        exit 1; \
-    } && \
-    echo "" && \
-    echo "=== Build Completed Successfully ==="
+# Using explicit error handling to ensure errors are visible
+RUN npm run build 2>&1
 
 # Stage 2: Production image
 FROM node:20-alpine AS runner
