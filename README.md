@@ -1,229 +1,525 @@
 # TempChat - Simple Chat Application
 
-A simple, temporary chat application built with Next.js, TypeScript, and file-based storage. No database required!
+A modern, real-time chat application built with Next.js 14, TypeScript, and file-based storage. Perfect for temporary team chats, quick collaboration, or learning Next.js App Router patterns. No database required!
 
-## Features
+## 🚀 Features
 
-- ✅ Simple authentication (3 fixed users)
-- ✅ Real-time chat with Server-Sent Events (SSE)
-- ✅ File attachments (all file types, up to 10MB)
-- ✅ Emoji picker
-- ✅ Giphy GIF search and sharing
-- ✅ File-based storage (no database needed)
+- ✅ **Simple Authentication** - JWT-based session management with bcrypt password hashing
+- ✅ **Real-time Messaging** - Server-Sent Events (SSE) for instant message delivery
+- ✅ **File Attachments** - Upload and share any file type (up to 10MB)
+- ✅ **Emoji Picker** - Rich emoji support with visual picker
+- ✅ **Giphy Integration** - Search and share GIFs directly in chat
+- ✅ **File-based Storage** - No database needed, everything stored in JSON files
+- ✅ **Docker Support** - Easy deployment with Docker and Docker Compose
+- ✅ **TypeScript** - Full type safety throughout the application
+- ✅ **Responsive Design** - Modern UI with Tailwind CSS
 
-## Quick Start
+## 📋 Table of Contents
 
-### 1. Install Dependencies
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [API Documentation](#api-documentation)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Configuration](#configuration)
+- [Security](#security)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-```bash
-npm install
-```
+## 🏃 Quick Start
 
-### 2. Set Up Environment Variables
+### Prerequisites
 
-Create a `.env.local` file:
+- Node.js 20+ and npm
+- (Optional) Docker and Docker Compose for containerized deployment
+- (Optional) Giphy API key for GIF search functionality
 
-```env
-JWT_SECRET=your-secret-key-here
-NEXT_PUBLIC_GIPHY_API_KEY=your-giphy-api-key
-```
+### Installation
 
-**Note:** Get a free Giphy API key from [Giphy Developers](https://developers.giphy.com/). The app will work without it, but GIF search won't function.
-
-### 3. Initialize Users
-
-The users will be automatically created on first login, but you can also manually initialize them:
-
-```bash
-npx tsx scripts/init-users.ts
-```
-
-### 4. Run the Development Server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Default Users
-
-- **user1** / **user1pass**
-- **user2** / **user2pass**
-- **user3** / **user3pass**
-- **alex** / **user1pass**
-
-## Deployment
-
-### Docker (Recommended for Ubuntu/VPS)
-
-The easiest way to deploy on Ubuntu or any Docker-compatible server.
-
-#### Prerequisites
-
-- Docker and Docker Compose installed on your server
-- Git (to clone the repository)
-
-#### Quick Start with Docker
-
-1. **Clone the repository** on your server:
+1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/ialexies/tempchat.git
    cd tempchat
    ```
 
-2. **Create environment file**:
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   
+   Create a `.env.local` file in the project root:
+   ```env
+   JWT_SECRET=your-strong-secret-key-here
+   NEXT_PUBLIC_GIPHY_API_KEY=your-giphy-api-key
+   ```
+   
+   **Generate a secure JWT_SECRET:**
+   ```bash
+   openssl rand -base64 32
+   ```
+   
+   **Get a Giphy API key (optional):**
+   - Visit [Giphy Developers](https://developers.giphy.com/)
+   - Create a free account and generate an API key
+   - The app works without it, but GIF search won't function
+
+4. **Initialize users (optional):**
+   
+   Users are automatically created on first login, but you can pre-initialize them:
+   ```bash
+   npx tsx scripts/init-users.ts
+   ```
+
+5. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+6. **Open your browser:**
+   
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Default Users
+
+The application comes with 4 pre-configured users:
+
+| Username | Password |
+|----------|----------|
+| `user1`  | `user1pass` |
+| `user2`  | `user2pass` |
+| `user3`  | `user3pass` |
+| `alex`   | `user1pass` |
+
+**Note:** These are default credentials for development. Change them in production!
+
+## 📁 Project Structure
+
+```
+tempchat/
+├── app/                      # Next.js App Router directory
+│   ├── api/                  # API routes
+│   │   ├── auth/            # Authentication endpoints
+│   │   │   ├── check/       # Session validation
+│   │   │   └── login/       # User login
+│   │   ├── files/           # File serving
+│   │   │   └── [filename]/  # Dynamic file route
+│   │   ├── giphy/           # Giphy API proxy
+│   │   │   ├── search/      # GIF search
+│   │   │   └── trending/    # Trending GIFs
+│   │   ├── messages/        # Message endpoints
+│   │   │   ├── route.ts     # GET/POST messages
+│   │   │   └── stream/      # SSE stream endpoint
+│   │   ├── upload/          # File upload
+│   │   └── logout/          # Logout endpoint
+│   ├── chat/                # Chat page
+│   │   └── page.tsx         # Main chat interface
+│   ├── layout.tsx           # Root layout
+│   ├── page.tsx             # Login page
+│   └── globals.css          # Global styles
+├── components/              # React components
+│   ├── ChatInput.tsx        # Message input component
+│   ├── EmojiPicker.tsx      # Emoji picker component
+│   └── GifPicker.tsx        # GIF picker component
+├── lib/                     # Utility functions
+│   ├── auth.ts              # Authentication utilities
+│   ├── storage.ts           # File-based storage operations
+│   ├── messageBroadcast.ts  # SSE message broadcasting
+│   └── giphy.ts             # Giphy API client
+├── types/                   # TypeScript type definitions
+│   └── index.ts             # Shared types and interfaces
+├── scripts/                 # Utility scripts
+│   └── init-users.ts        # User initialization script
+├── data/                    # Data storage (gitignored)
+│   ├── users.json           # User accounts
+│   ├── messages.json        # Chat messages
+│   └── uploads/             # Uploaded files
+├── .env.example             # Environment variables template
+├── Dockerfile               # Docker image definition
+├── docker-compose.yml       # Docker Compose configuration
+├── next.config.js           # Next.js configuration
+├── tailwind.config.ts       # Tailwind CSS configuration
+└── tsconfig.json            # TypeScript configuration
+```
+
+## 📡 API Documentation
+
+See [API.md](./API.md) for complete API documentation.
+
+### Quick API Reference
+
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/api/auth/login` | POST | User login | No |
+| `/api/auth/check` | GET | Check session | No |
+| `/api/logout` | POST | Logout user | No |
+| `/api/messages` | GET | Get all messages | Yes |
+| `/api/messages` | POST | Send message | Yes |
+| `/api/messages/stream` | GET | SSE stream for real-time updates | Yes |
+| `/api/upload` | POST | Upload file | Yes |
+| `/api/files/[filename]` | GET | Download file | Yes |
+| `/api/giphy/search` | GET | Search GIFs | No |
+| `/api/giphy/trending` | GET | Get trending GIFs | No |
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript (strict mode)
+- **Styling:** Tailwind CSS
+- **Authentication:** JWT with httpOnly cookies
+- **Password Hashing:** bcryptjs
+- **Real-time:** Server-Sent Events (SSE)
+- **Storage:** File-based JSON storage
+
+### Key Design Decisions
+
+1. **File-based Storage:** Chosen for simplicity - no database setup required. Perfect for temporary chats or small teams.
+
+2. **Server-Sent Events:** Used instead of WebSockets for simplicity. SSE is unidirectional (server → client) which fits chat applications well.
+
+3. **JWT Sessions:** Stateless authentication using JWT tokens stored in httpOnly cookies for security.
+
+4. **Next.js App Router:** Modern Next.js architecture with Server Components by default, reducing client-side JavaScript.
+
+5. **TypeScript:** Full type safety with strict mode enabled for better code quality and developer experience.
+
+### Data Flow
+
+```
+User Action → API Route → Storage Layer → Broadcast System → SSE Clients
+```
+
+1. **User sends message:** Client POSTs to `/api/messages`
+2. **Server validates:** Checks authentication and message content
+3. **Storage:** Message appended to `messages.json`
+4. **Broadcast:** All connected SSE clients notified
+5. **Update:** Clients receive new messages via SSE stream
+
+### Real-time Updates
+
+The application uses Server-Sent Events (SSE) for real-time message delivery:
+
+- Clients connect to `/api/messages/stream`
+- Server polls `messages.json` every second
+- New messages are broadcast to all connected clients
+- Keepalive messages sent to maintain connection
+
+## 💻 Development
+
+### Available Scripts
+
+```bash
+# Development server with hot reload
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm start
+
+# Run ESLint
+npm run lint
+```
+
+### Development Workflow
+
+1. **Make changes** to the codebase
+2. **Run linting:** `npm run lint` to check for errors
+3. **Test locally:** `npm run dev` and test in browser
+4. **Build test:** `npm run build` to ensure production build works
+
+### Adding New Features
+
+1. **Define types** in `types/index.ts` if needed
+2. **Create utilities** in `lib/` for reusable logic
+3. **Add API routes** in `app/api/` following REST conventions
+4. **Create components** in `components/` for UI elements
+5. **Update documentation** in README.md and API.md
+
+### Code Style
+
+- Follow TypeScript strict mode guidelines
+- Use async/await over promise chains
+- Prefer Server Components over Client Components
+- Use Tailwind CSS for styling
+- Follow Next.js App Router conventions
+- See `.cursorrules` for detailed coding standards
+
+## 🚢 Deployment
+
+### Docker Deployment (Recommended)
+
+The easiest way to deploy on Ubuntu, VPS, or any Docker-compatible server.
+
+#### Prerequisites
+
+- Docker and Docker Compose installed
+- Git (to clone the repository)
+
+#### Quick Start
+
+1. **Clone the repository on your server:**
+   ```bash
+   git clone https://github.com/ialexies/tempchat.git
+   cd tempchat
+   ```
+
+2. **Create environment file:**
    ```bash
    cp .env.example .env
-   # Edit .env and set your JWT_SECRET and GIPHY_API_KEY
+   # Edit .env with your secrets
    nano .env
    ```
 
-3. **Build and run with Docker Compose**:
+3. **Build and run:**
    ```bash
    docker-compose up -d --build
    ```
 
-4. **Access the application**:
-   - Open `http://your-server-ip:3000` in your browser
-   - The app will be running in the background
+4. **Access the application:**
+   - Open `http://your-server-ip:3001` in your browser
+   - The app runs in the background
 
 #### Docker Commands
 
-- **Start the container**: `docker-compose up -d`
-- **Stop the container**: `docker-compose down`
-- **View logs**: `docker-compose logs -f`
-- **Restart**: `docker-compose restart`
-- **Rebuild after code changes**: `docker-compose up -d --build`
+```bash
+# Start containers
+docker-compose up -d
+
+# Stop containers
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart
+docker-compose restart
+
+# Rebuild after code changes
+docker-compose up -d --build
+```
 
 #### Data Persistence
 
-The `data/` directory is mounted as a volume, so your users, messages, and uploaded files persist even when the container is stopped or rebuilt.
-
-#### Environment Variables
-
-Create a `.env` file in the project root (copy from `.env.example`):
-
-```env
-JWT_SECRET=your-strong-secret-key-here
-NEXT_PUBLIC_GIPHY_API_KEY=your-giphy-api-key
-```
-
-**Important**: Generate a strong JWT_SECRET for production:
-```bash
-openssl rand -base64 32
-```
+The `data/` directory is mounted as a volume, so your users, messages, and uploaded files persist even when containers are stopped or rebuilt.
 
 ### GitHub Actions CI/CD
 
-The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that:
+The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) for automated deployment.
 
-1. **Lints and tests** on every push/PR
-2. **Builds Docker image** and pushes to GitHub Container Registry
-3. **Optionally deploys** to your Ubuntu server via SSH
-
-#### Setting Up Automated Deployment
+#### Setup
 
 1. **Add GitHub Secrets** (Repository Settings → Secrets and variables → Actions):
    - `SSH_HOST`: Your server IP address
    - `SSH_USERNAME`: SSH username (e.g., `ubuntu`, `root`)
    - `SSH_PRIVATE_KEY`: Your private SSH key
    - `SSH_PORT`: SSH port (default: 22, optional)
-   - `DEPLOY_URL`: Your application URL (optional, for status badges)
+   - `DEPLOY_URL`: Your application URL (optional)
 
-2. **Prepare your server**:
+2. **Prepare your server:**
    ```bash
-   # On your Ubuntu server
-   mkdir -p /opt/tempchat  # or ~/tempchat
+   mkdir -p /opt/tempchat
    cd /opt/tempchat
-   git clone <your-repo-url> .
+   git clone https://github.com/ialexies/tempchat.git .
    ```
 
-3. **First-time setup on server**:
+3. **First-time setup:**
    ```bash
-   # Create .env file
    cp .env.example .env
    nano .env  # Edit with your secrets
-   
-   # Start the application
    docker-compose up -d
    ```
 
-4. **Automatic deployment**: After pushing to `main` or `master` branch, GitHub Actions will:
+4. **Automatic deployment:** After pushing to `main` branch, GitHub Actions will:
    - Run tests and linting
-   - Build the Docker image
+   - Build Docker image
    - Deploy to your server automatically
 
-#### Manual Docker Build (without docker-compose)
-
-```bash
-# Build the image
-docker build -t tempchat .
-
-# Run the container
-docker run -d \
-  -p 3000:3000 \
-  -v $(pwd)/data:/app/data \
-  -e JWT_SECRET=your-secret \
-  -e NEXT_PUBLIC_GIPHY_API_KEY=your-key \
-  --name tempchat \
-  --restart unless-stopped \
-  tempchat
-```
-
-### Vercel (Alternative)
+### Vercel Deployment
 
 1. Push your code to GitHub
-2. Import the project in Vercel
+2. Import the project in [Vercel](https://vercel.com)
 3. Add environment variables:
    - `JWT_SECRET`
    - `NEXT_PUBLIC_GIPHY_API_KEY`
 4. Deploy!
 
-**Note:** File storage works on Vercel, but files are stored in the serverless function's temporary filesystem. For production use, consider using Vercel Blob or similar services.
+**Note:** File storage works on Vercel, but files are stored in the serverless function's temporary filesystem. For production, consider using Vercel Blob or similar services.
 
 ### Other Platforms
 
 The app can be deployed to any Node.js hosting platform:
-- Render
-- Railway
-- DigitalOcean App Platform
-- etc.
+- **Render:** Connect GitHub repo, add env vars, deploy
+- **Railway:** Import repo, configure environment, deploy
+- **DigitalOcean App Platform:** Connect repo, set build/run commands, deploy
+- **AWS/GCP/Azure:** Use container services or App Service
 
-## Project Structure
+## ⚙️ Configuration
 
+### Environment Variables
+
+| Variable | Required | Description | Default |
+|----------|----------|-------------|---------|
+| `JWT_SECRET` | Yes | Secret key for JWT token signing | `temp-secret-key-change-in-production` |
+| `NEXT_PUBLIC_GIPHY_API_KEY` | No | Giphy API key for GIF search | - |
+| `NODE_ENV` | No | Node environment (production/development) | `development` |
+| `PORT` | No | Server port (Docker) | `3000` |
+
+### File Storage Limits
+
+- **Max file size:** 10MB (configurable in `app/api/upload/route.ts`)
+- **Storage location:** `data/uploads/` directory
+- **Supported types:** All file types
+
+### Session Configuration
+
+- **Session duration:** 7 days
+- **Cookie name:** `chat-session`
+- **Cookie settings:** httpOnly, secure (production), sameSite: lax
+
+## 🔒 Security
+
+### Security Features
+
+- ✅ **Password Hashing:** bcrypt with salt rounds (10)
+- ✅ **JWT Tokens:** Secure token-based authentication
+- ✅ **HttpOnly Cookies:** Prevents XSS attacks
+- ✅ **File Validation:** Size and type checking
+- ✅ **Input Sanitization:** Basic validation on user input
+- ✅ **Secure Headers:** Next.js default security headers
+
+### Security Considerations
+
+⚠️ **This is a temporary chat application with basic security measures.**
+
+**Not recommended for:**
+- Production use with sensitive data
+- Handling PII (Personally Identifiable Information)
+- Compliance requirements (HIPAA, GDPR, etc.)
+- High-security environments
+
+**Recommended for:**
+- Temporary team chats
+- Development/testing environments
+- Learning Next.js patterns
+- Small internal teams
+
+### Security Best Practices
+
+1. **Change default passwords** in production
+2. **Use strong JWT_SECRET** (generate with `openssl rand -base64 32`)
+3. **Enable HTTPS** in production
+4. **Regular backups** of `data/` directory
+5. **Monitor file uploads** for malicious content
+6. **Keep dependencies updated** (`npm audit`)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Port Already in Use
+
+```bash
+# Error: Port 3000 is already in use
+# Solution: Use a different port
+PORT=3001 npm run dev
 ```
-tempchat/
-├── app/              # Next.js app directory
-│   ├── api/         # API routes
-│   ├── chat/        # Chat page
-│   └── page.tsx     # Login page
-├── components/      # React components
-├── lib/            # Utility functions
-├── types/          # TypeScript types
-└── data/           # File storage (gitignored)
+
+#### Permission Denied (Docker)
+
+```bash
+# Error: Permission denied when accessing data directory
+# Solution: Fix permissions
+sudo chown -R $USER:$USER ./data
 ```
 
-## Tech Stack
+#### JWT Secret Not Set
 
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **bcryptjs** - Password hashing
-- **emoji-picker-react** - Emoji picker
-- **Giphy API** - GIF search
+```bash
+# Error: JWT verification failed
+# Solution: Set JWT_SECRET in .env.local
+echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env.local
+```
 
-## Security Notes
+#### Giphy API Not Working
 
-This is a temporary chat application with basic security:
-- Passwords are hashed with bcrypt
-- Sessions use JWT tokens
-- File uploads are validated (size, type)
-- Basic input sanitization
+- Check that `NEXT_PUBLIC_GIPHY_API_KEY` is set correctly
+- Verify API key is valid at [Giphy Developers](https://developers.giphy.com/)
+- Check browser console for API errors
 
-**Not recommended for production use with sensitive data.**
+#### Messages Not Updating in Real-time
 
-## License
+- Check browser console for SSE connection errors
+- Verify `/api/messages/stream` endpoint is accessible
+- Check network tab for SSE connection status
+- Restart the development server
 
-MIT
+#### File Upload Fails
 
+- Check file size (max 10MB)
+- Verify `data/uploads/` directory exists and is writable
+- Check server logs for detailed error messages
+
+### Debug Mode
+
+Enable debug logging by setting:
+```env
+NODE_ENV=development
+```
+
+Check logs:
+```bash
+# Docker
+docker-compose logs -f
+
+# Local
+npm run dev
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. **Fork the repository**
+2. **Create a feature branch:** `git checkout -b feature/amazing-feature`
+3. **Make your changes** following the code style guidelines
+4. **Run linting:** `npm run lint`
+5. **Test your changes** locally
+6. **Commit your changes:** `git commit -m 'Add amazing feature'`
+7. **Push to the branch:** `git push origin feature/amazing-feature`
+8. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow TypeScript strict mode
+- Write self-documenting code
+- Add JSDoc comments for complex functions
+- Update documentation for new features
+- Test your changes thoroughly
+- Follow the existing code style
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) - The React framework
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
+- [Giphy](https://giphy.com/) - GIF API
+- [emoji-picker-react](https://github.com/ealush/emoji-picker-react) - Emoji picker component
+
+## 📞 Support
+
+- **Issues:** [GitHub Issues](https://github.com/ialexies/tempchat/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/ialexies/tempchat/discussions)
+
+---
+
+Made with ❤️ using Next.js 14
