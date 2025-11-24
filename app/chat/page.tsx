@@ -8,6 +8,7 @@ import ChatInput from '@/components/ChatInput';
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [username, setUsername] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -16,19 +17,25 @@ export default function ChatPage() {
     let cleanup: (() => void) | undefined;
     
     // Check authentication
-    fetch('/api/auth/check')
+    fetch('/api/auth/check', {
+      credentials: 'include', // Ensure cookies are sent
+    })
       .then(res => res.json())
       .then(data => {
-        if (data.username) {
+        // Check if user is authenticated
+        if (data?.authenticated && data?.username) {
           setUsername(data.username);
+          setIsAdmin(data.isAdmin || false);
           loadMessages();
           // Use polling for reliable real-time updates (works better in serverless)
           cleanup = startPolling();
         } else {
+          // Not authenticated, redirect to login
           router.push('/');
         }
       })
       .catch(() => {
+        // Network error, redirect to login
         router.push('/');
       });
     
@@ -189,6 +196,14 @@ export default function ChatPage() {
         <h1 className="text-2xl font-bold text-gray-800">TempChat</h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-600">Logged in as: <strong>{username}</strong></span>
+          {isAdmin && (
+            <button
+              onClick={() => router.push('/admin')}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Admin Panel
+            </button>
+          )}
           <button
             onClick={handleLogout}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"

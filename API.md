@@ -13,10 +13,22 @@ Most endpoints require authentication via JWT token stored in an httpOnly cookie
 
 ### Authentication Flow
 
-1. User logs in via `/api/auth/login`
-2. Server sets `chat-session` cookie with JWT token
-3. Subsequent requests automatically include the cookie
-4. Server validates token on protected endpoints
+1. User logs in via `/api/auth/login` with username and password
+2. Server verifies credentials (checks hardcoded admin account first, then database users)
+3. Server sets `chat-session` cookie with JWT token (httpOnly, secure in production, sameSite: lax)
+4. Subsequent requests automatically include the cookie
+5. Server validates token on protected endpoints
+6. Use `/api/auth/check` to verify authentication status (always returns 200 OK)
+
+### Cookie Details
+
+The `chat-session` cookie contains a JWT token with the following properties:
+- **Name:** `chat-session`
+- **HttpOnly:** Yes (prevents XSS attacks)
+- **Secure:** Yes in production (HTTPS only)
+- **SameSite:** Lax (CSRF protection)
+- **Path:** `/` (available site-wide)
+- **Max-Age:** 604800 seconds (7 days)
 
 ---
 
@@ -47,7 +59,14 @@ Authenticate a user and create a session.
 **Response (401 Unauthorized):**
 ```json
 {
-  "error": "Invalid credentials"
+  "error": "Invalid username or password"
+}
+```
+
+**Response (400 Bad Request):**
+```json
+{
+  "error": "Username and password are required"
 }
 ```
 
@@ -63,17 +82,18 @@ curl -X POST http://localhost:3000/api/auth/login \
 
 #### GET `/api/auth/check`
 
-Check if the current session is valid.
+Check if the current session is valid. Always returns 200 OK to avoid console errors.
 
-**Response (200 OK):**
+**Response (200 OK - Authenticated):**
 ```json
 {
-  "authenticated": true,
-  "username": "user1"
+  "username": "user1",
+  "isAdmin": false,
+  "authenticated": true
 }
 ```
 
-**Response (401 Unauthorized):**
+**Response (200 OK - Not Authenticated):**
 ```json
 {
   "authenticated": false
@@ -85,6 +105,8 @@ Check if the current session is valid.
 curl http://localhost:3000/api/auth/check \
   -b cookies.txt
 ```
+
+**Note:** This endpoint always returns 200 OK. Check the `authenticated` field to determine authentication status. This prevents browser console errors when checking auth status on the login page.
 
 ---
 
@@ -484,6 +506,201 @@ curl "http://localhost:3000/api/giphy/trending?limit=10"
 ```
 
 **Note:** Requires `NEXT_PUBLIC_GIPHY_API_KEY` environment variable. Returns error if not configured.
+
+---
+
+### Admin Management
+
+#### GET `/api/admin/check`
+
+Check if the current user is an admin.
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "isAdmin": true
+}
+```
+
+**Response (401 Unauthorized):**
+```json
+{
+  "isAdmin": false
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:3000/api/admin/check \
+  -b cookies.txt
+```
+
+---
+
+#### GET `/api/admin/users`
+
+List all users in the system.
+
+**Authentication:** Required (Admin only)
+
+**Response (200 OK):**
+```json
+{
+  "users": [
+    {
+      "username": "user1",
+      "isAdmin": false
+    },
+    {
+      "username": "ialexies",
+      "isAdmin": true
+    }
+  ]
+}
+```
+
+**Response (403 Forbidden):**
+```json
+{
+  "error": "Forbidden"
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:3000/api/admin/users \
+  -b cookies.txt
+```
+
+---
+
+#### POST `/api/admin/users`
+
+Create a new user.
+
+**Authentication:** Required (Admin only)
+
+**Request Body:**
+```json
+{
+  "username": "newuser",
+  "password": "password123",
+  "isAdmin": false
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "username": "newuser"
+}
+```
+
+**Response (400 Bad Request):**
+```json
+{
+  "error": "Username and password are required"
+}
+```
+
+**Response (409 Conflict):**
+```json
+{
+  "error": "Username already exists"
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/admin/users \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"username":"newuser","password":"password123","isAdmin":false}'
+```
+
+---
+
+#### PUT `/api/admin/users`
+
+Update an existing user.
+
+**Authentication:** Required (Admin only)
+
+**Request Body:**
+```json
+{
+  "username": "user1",
+  "password": "newpassword123",
+  "isAdmin": true
+}
+```
+
+**Note:** All fields are optional. Only include fields you want to update.
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "username": "user1"
+}
+```
+
+**Response (400 Bad Request):**
+```json
+{
+  "error": "Username is required"
+}
+```
+
+**Example:**
+```bash
+curl -X PUT http://localhost:3000/api/admin/users \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"username":"user1","isAdmin":true}'
+```
+
+---
+
+#### DELETE `/api/admin/users`
+
+Delete a user.
+
+**Authentication:** Required (Admin only)
+
+**Query Parameters:**
+- `username` (required): The username to delete
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "username": "user1"
+}
+```
+
+**Response (400 Bad Request):**
+```json
+{
+  "error": "Cannot delete your own account"
+}
+```
+
+**Response (404 Not Found):**
+```json
+{
+  "error": "User not found"
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE "http://localhost:3000/api/admin/users?username=user1" \
+  -b cookies.txt
+```
 
 ---
 

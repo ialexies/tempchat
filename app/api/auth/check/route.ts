@@ -4,8 +4,16 @@ import { getSession } from '@/lib/auth';
 export async function GET() {
   const session = await getSession();
   if (session) {
-    return NextResponse.json({ username: session.username });
+    return NextResponse.json({ 
+      username: session.username,
+      isAdmin: session.isAdmin || false,
+      authenticated: true
+    });
   }
-  return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  // Return 200 with authenticated: false to avoid console errors
+  // This is expected behavior when checking auth status
+  return NextResponse.json({ 
+    authenticated: false 
+  });
 }
 

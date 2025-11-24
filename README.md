@@ -1,6 +1,6 @@
 # TempChat - Simple Chat Application
 
-A modern, real-time chat application built with Next.js 14, TypeScript, and file-based storage. Perfect for temporary team chats, quick collaboration, or learning Next.js App Router patterns. No database required!
+A modern, real-time chat application built with Next.js 14, TypeScript, and SQLite database. Perfect for temporary team chats, quick collaboration, or learning Next.js App Router patterns. Simple file-based SQLite database - no external database server required!
 
 ## 🚀 Features
 
@@ -9,7 +9,8 @@ A modern, real-time chat application built with Next.js 14, TypeScript, and file
 - ✅ **File Attachments** - Upload and share any file type (up to 10MB)
 - ✅ **Emoji Picker** - Rich emoji support with visual picker
 - ✅ **Giphy Integration** - Search and share GIFs directly in chat
-- ✅ **File-based Storage** - No database needed, everything stored in JSON files
+- ✅ **SQLite Database** - Simple file-based database, no external server needed
+- ✅ **Admin Panel** - Full user management with admin account
 - ✅ **Docker Support** - Easy deployment with Docker and Docker Compose
 - ✅ **TypeScript** - Full type safety throughout the application
 - ✅ **Responsive Design** - Modern UI with Tailwind CSS
@@ -39,62 +40,79 @@ A modern, real-time chat application built with Next.js 14, TypeScript, and file
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/ialexies/tempchat.git
    cd tempchat
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables:**
-   
+
    Create a `.env.local` file in the project root:
+
    ```env
    JWT_SECRET=your-strong-secret-key-here
    NEXT_PUBLIC_GIPHY_API_KEY=your-giphy-api-key
    ```
-   
+
    **Generate a secure JWT_SECRET:**
+
    ```bash
    openssl rand -base64 32
    ```
-   
+
    **Get a Giphy API key (optional):**
+
    - Visit [Giphy Developers](https://developers.giphy.com/)
    - Create a free account and generate an API key
    - The app works without it, but GIF search won't function
 
 4. **Initialize users (optional):**
-   
+
    Users are automatically created on first login, but you can pre-initialize them:
+
    ```bash
    npx tsx scripts/init-users.ts
    ```
 
 5. **Run the development server:**
+
    ```bash
    npm run dev
    ```
 
 6. **Open your browser:**
-   
+
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Default Users
 
 The application comes with 4 pre-configured users:
 
-| Username | Password |
-|----------|----------|
+| Username | Password    |
+| -------- | ----------- |
 | `user1`  | `user1pass` |
 | `user2`  | `user2pass` |
 | `user3`  | `user3pass` |
 | `alex`   | `user1pass` |
 
-**Note:** These are default credentials for development. Change them in production!
+### Admin Account
+
+The application includes a fixed admin account for user management:
+
+| Username   | Password    |
+| ---------- | ----------- |
+| `ialexies` | `*Luffy123` |
+
+**Note:** The admin account is hardcoded and cannot be deleted. Use the admin panel (accessible from the chat page) to manage users.
+
+**Note:** Default credentials are for development. Change them in production!
 
 ## 📁 Project Structure
 
@@ -126,16 +144,17 @@ tempchat/
 │   └── GifPicker.tsx        # GIF picker component
 ├── lib/                     # Utility functions
 │   ├── auth.ts              # Authentication utilities
-│   ├── storage.ts           # File-based storage operations
+│   ├── db.ts                # SQLite database connection
+│   ├── storage.ts           # Database operations
 │   ├── messageBroadcast.ts  # SSE message broadcasting
 │   └── giphy.ts             # Giphy API client
 ├── types/                   # TypeScript type definitions
 │   └── index.ts             # Shared types and interfaces
 ├── scripts/                 # Utility scripts
-│   └── init-users.ts        # User initialization script
+│   ├── init-users.ts        # User initialization script
+│   └── migrate-json-to-sqlite.ts  # JSON to SQLite migration
 ├── data/                    # Data storage (gitignored)
-│   ├── users.json           # User accounts
-│   ├── messages.json        # Chat messages
+│   ├── tempchat.db          # SQLite database file
 │   └── uploads/             # Uploaded files
 ├── .env.example             # Environment variables template
 ├── Dockerfile               # Docker image definition
@@ -151,18 +170,18 @@ See [API.md](./API.md) for complete API documentation.
 
 ### Quick API Reference
 
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|-------------|---------------|
-| `/api/auth/login` | POST | User login | No |
-| `/api/auth/check` | GET | Check session | No |
-| `/api/logout` | POST | Logout user | No |
-| `/api/messages` | GET | Get all messages | Yes |
-| `/api/messages` | POST | Send message | Yes |
-| `/api/messages/stream` | GET | SSE stream for real-time updates | Yes |
-| `/api/upload` | POST | Upload file | Yes |
-| `/api/files/[filename]` | GET | Download file | Yes |
-| `/api/giphy/search` | GET | Search GIFs | No |
-| `/api/giphy/trending` | GET | Get trending GIFs | No |
+| Endpoint                | Method | Description                      | Auth Required |
+| ----------------------- | ------ | -------------------------------- | ------------- |
+| `/api/auth/login`       | POST   | User login                       | No            |
+| `/api/auth/check`       | GET    | Check session                    | No            |
+| `/api/logout`           | POST   | Logout user                      | No            |
+| `/api/messages`         | GET    | Get all messages                 | Yes           |
+| `/api/messages`         | POST   | Send message                     | Yes           |
+| `/api/messages/stream`  | GET    | SSE stream for real-time updates | Yes           |
+| `/api/upload`           | POST   | Upload file                      | Yes           |
+| `/api/files/[filename]` | GET    | Download file                    | Yes           |
+| `/api/giphy/search`     | GET    | Search GIFs                      | No            |
+| `/api/giphy/trending`   | GET    | Get trending GIFs                | No            |
 
 ## 🏗️ Architecture
 
@@ -174,19 +193,22 @@ See [API.md](./API.md) for complete API documentation.
 - **Authentication:** JWT with httpOnly cookies
 - **Password Hashing:** bcryptjs
 - **Real-time:** Server-Sent Events (SSE)
-- **Storage:** File-based JSON storage
+- **Database:** SQLite (better-sqlite3)
+- **Storage:** File-based SQLite database
 
 ### Key Design Decisions
 
-1. **File-based Storage:** Chosen for simplicity - no database setup required. Perfect for temporary chats or small teams.
+1. **SQLite Database:** Chosen for simplicity and reliability. Single file database, no external server needed. Perfect for temporary chats or small teams. Automatically migrates from JSON files if they exist.
 
 2. **Server-Sent Events:** Used instead of WebSockets for simplicity. SSE is unidirectional (server → client) which fits chat applications well.
 
 3. **JWT Sessions:** Stateless authentication using JWT tokens stored in httpOnly cookies for security.
 
-4. **Next.js App Router:** Modern Next.js architecture with Server Components by default, reducing client-side JavaScript.
+4. **Admin System:** Hardcoded admin account for reliability, with support for additional admin users stored in database.
 
-5. **TypeScript:** Full type safety with strict mode enabled for better code quality and developer experience.
+5. **Next.js App Router:** Modern Next.js architecture with Server Components by default, reducing client-side JavaScript.
+
+6. **TypeScript:** Full type safety with strict mode enabled for better code quality and developer experience.
 
 ### Data Flow
 
@@ -196,7 +218,7 @@ User Action → API Route → Storage Layer → Broadcast System → SSE Clients
 
 1. **User sends message:** Client POSTs to `/api/messages`
 2. **Server validates:** Checks authentication and message content
-3. **Storage:** Message appended to `messages.json`
+3. **Storage:** Message inserted into SQLite database
 4. **Broadcast:** All connected SSE clients notified
 5. **Update:** Clients receive new messages via SSE stream
 
@@ -205,9 +227,13 @@ User Action → API Route → Storage Layer → Broadcast System → SSE Clients
 The application uses Server-Sent Events (SSE) for real-time message delivery:
 
 - Clients connect to `/api/messages/stream`
-- Server polls `messages.json` every second
+- Server polls SQLite database every second
 - New messages are broadcast to all connected clients
 - Keepalive messages sent to maintain connection
+
+### Database Migration
+
+If you have existing JSON files (`users.json`, `messages.json`), the application will automatically migrate them to SQLite on first run. The JSON files will be backed up with `.backup` extension.
 
 ## 💻 Development
 
@@ -265,12 +291,14 @@ The easiest way to deploy on Ubuntu, VPS, or any Docker-compatible server.
 #### Quick Start
 
 1. **Clone the repository on your server:**
+
    ```bash
    git clone https://github.com/ialexies/tempchat.git
    cd tempchat
    ```
 
 2. **Create environment file:**
+
    ```bash
    cp .env.example .env
    # Edit .env with your secrets
@@ -278,6 +306,7 @@ The easiest way to deploy on Ubuntu, VPS, or any Docker-compatible server.
    ```
 
 3. **Build and run:**
+
    ```bash
    docker-compose up -d --build
    ```
@@ -316,6 +345,7 @@ The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml
 #### Setup
 
 1. **Add GitHub Secrets** (Repository Settings → Secrets and variables → Actions):
+
    - `SSH_HOST`: Your server IP address
    - `SSH_USERNAME`: SSH username (e.g., `ubuntu`, `root`)
    - `SSH_PRIVATE_KEY`: Your private SSH key
@@ -323,6 +353,7 @@ The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml
    - `DEPLOY_URL`: Your application URL (optional)
 
 2. **Prepare your server:**
+
    ```bash
    mkdir -p /opt/tempchat
    cd /opt/tempchat
@@ -330,6 +361,7 @@ The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml
    ```
 
 3. **First-time setup:**
+
    ```bash
    cp .env.example .env
    nano .env  # Edit with your secrets
@@ -355,6 +387,7 @@ The repository includes a GitHub Actions workflow (`.github/workflows/deploy.yml
 ### Other Platforms
 
 The app can be deployed to any Node.js hosting platform:
+
 - **Render:** Connect GitHub repo, add env vars, deploy
 - **Railway:** Import repo, configure environment, deploy
 - **DigitalOcean App Platform:** Connect repo, set build/run commands, deploy
@@ -364,12 +397,12 @@ The app can be deployed to any Node.js hosting platform:
 
 ### Environment Variables
 
-| Variable | Required | Description | Default |
-|----------|----------|-------------|---------|
-| `JWT_SECRET` | Yes | Secret key for JWT token signing | `temp-secret-key-change-in-production` |
-| `NEXT_PUBLIC_GIPHY_API_KEY` | No | Giphy API key for GIF search | - |
-| `NODE_ENV` | No | Node environment (production/development) | `development` |
-| `PORT` | No | Server port (Docker) | `3000` |
+| Variable                    | Required | Description                               | Default                                |
+| --------------------------- | -------- | ----------------------------------------- | -------------------------------------- |
+| `JWT_SECRET`                | Yes      | Secret key for JWT token signing          | `temp-secret-key-change-in-production` |
+| `NEXT_PUBLIC_GIPHY_API_KEY` | No       | Giphy API key for GIF search              | -                                      |
+| `NODE_ENV`                  | No       | Node environment (production/development) | `development`                          |
+| `PORT`                      | No       | Server port (Docker)                      | `3000`                                 |
 
 ### File Storage Limits
 
@@ -381,7 +414,12 @@ The app can be deployed to any Node.js hosting platform:
 
 - **Session duration:** 7 days
 - **Cookie name:** `chat-session`
-- **Cookie settings:** httpOnly, secure (production), sameSite: lax
+- **Cookie settings:**
+  - `httpOnly: true` - Prevents JavaScript access (XSS protection)
+  - `secure: true` - HTTPS only in production
+  - `sameSite: 'lax'` - CSRF protection
+  - `path: '/'` - Available site-wide
+  - `maxAge: 604800` - 7 days in seconds
 
 ## 🔒 Security
 
@@ -399,12 +437,14 @@ The app can be deployed to any Node.js hosting platform:
 ⚠️ **This is a temporary chat application with basic security measures.**
 
 **Not recommended for:**
+
 - Production use with sensitive data
 - Handling PII (Personally Identifiable Information)
 - Compliance requirements (HIPAA, GDPR, etc.)
 - High-security environments
 
 **Recommended for:**
+
 - Temporary team chats
 - Development/testing environments
 - Learning Next.js patterns
@@ -460,6 +500,22 @@ echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env.local
 - Check network tab for SSE connection status
 - Restart the development server
 
+#### Login Not Working
+
+- **Fields clearing on submit:** This was a bug that has been fixed. Ensure you're using the latest code.
+- **No error messages:** Check browser console for detailed logs (prefixed with `[LoginPage]`)
+- **Cookie not being set:**
+  - Verify `credentials: 'include'` is in fetch requests
+  - Check that cookies are enabled in your browser
+  - Ensure you're accessing via `localhost` (not `127.0.0.1` or IP address)
+  - Check browser DevTools → Application → Cookies to see if `chat-session` cookie exists
+- **401 errors in console:** The `/api/auth/check` endpoint now returns 200 OK with `authenticated: false` to prevent console errors
+- **Form not submitting:**
+  - Check browser console for JavaScript errors
+  - Verify React is loading correctly (check Network tab for `main-app.js` and `app-pages-internals.js`)
+  - Try hard refresh (Ctrl+F5 or Cmd+Shift+R)
+  - Clear browser cache
+
 #### File Upload Fails
 
 - Check file size (max 10MB)
@@ -469,11 +525,13 @@ echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env.local
 ### Debug Mode
 
 Enable debug logging by setting:
+
 ```env
 NODE_ENV=development
 ```
 
 Check logs:
+
 ```bash
 # Docker
 docker-compose logs -f

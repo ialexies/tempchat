@@ -24,7 +24,13 @@ export async function POST(request: NextRequest) {
 
     await setSession(username);
 
-    return NextResponse.json({ success: true, username });
+    // Create response with success message
+    const response = NextResponse.json({ success: true, username });
+    
+    // Ensure cookie is set (it should already be set by setSession, but this ensures it's in the response)
+    // The cookie is automatically added by Next.js cookies() API
+    
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(
