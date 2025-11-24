@@ -47,28 +47,21 @@ RUN echo "=== Checking Required Files ===" && \
 ARG NEXT_PUBLIC_GIPHY_API_KEY
 ENV NEXT_PUBLIC_GIPHY_API_KEY=${NEXT_PUBLIC_GIPHY_API_KEY:-}
 
-# Build the application with maximum verbosity
+# Build the application
 RUN echo "=== Build Environment ===" && \
     node --version && \
     npm --version && \
-    echo "PWD: $(pwd)" && \
     echo "" && \
-    echo "=== Starting Next.js Build ===" && \
-    NODE_OPTIONS="--max-old-space-size=4096" npm run build 2>&1 || { \
+    echo "=== Running Next.js Build ===" && \
+    npm run build || { \
         echo ""; \
         echo "=== BUILD FAILED ==="; \
-        echo "Exit code: $?"; \
-        echo "Checking for error logs..."; \
-        if [ -d .next ]; then \
-            echo "Build directory exists, checking for error files..."; \
-            find .next -name "*.log" -o -name "*error*" 2>/dev/null | head -10 || true; \
-        fi; \
+        echo "The build command exited with code $?"; \
+        echo "Check the output above for the actual error message."; \
         exit 1; \
     } && \
     echo "" && \
-    echo "=== Build Successful ===" && \
-    echo "Checking build output..." && \
-    ls -la .next/standalone 2>/dev/null && echo "✓ Standalone output exists" || echo "⚠ Standalone output check"
+    echo "=== Build Completed Successfully ==="
 
 # Stage 2: Production image
 FROM node:20-alpine AS runner
