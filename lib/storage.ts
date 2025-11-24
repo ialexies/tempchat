@@ -327,6 +327,17 @@ export async function appendMessage(message: Message): Promise<void> {
   );
 }
 
+// Delete message from database
+export async function deleteMessage(messageId: string): Promise<boolean> {
+  await initializeDatabase();
+  const db = getDb();
+  
+  const deleteStmt = db.prepare('DELETE FROM messages WHERE id = ?');
+  const result = deleteStmt.run(messageId);
+  
+  return result.changes > 0;
+}
+
 // Get uploads directory path
 export function getUploadsDir(): string {
   return UPLOADS_DIR;

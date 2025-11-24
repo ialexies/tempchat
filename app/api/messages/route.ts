@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { readMessages, appendMessage } from '@/lib/storage';
+import { readMessages, appendMessage, deleteMessage } from '@/lib/storage';
 import { Message } from '@/types';
-import { broadcastNewMessages } from '@/lib/messageBroadcast';
+import { broadcastNewMessages, broadcastMessageDeleted } from '@/lib/messageBroadcast';
 
 // Simple UUID generator if uuid package not available
 function generateId(): string {
@@ -55,6 +55,50 @@ export async function POST(request: NextRequest) {
     console.error('Error sending message:', error);
     return NextResponse.json(
       { error: 'Failed to send message' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Check if user is admin
+  if (!session.isAdmin) {
+    return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const messageId = searchParams.get('id');
+
+    if (!messageId) {
+      return NextResponse.json(
+        { error: 'Message ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const deleted = await deleteMessage(messageId);
+    
+    if (!deleted) {
+      return NextResponse.json(
+        { error: 'Message not found' },
+        { status: 404 }
+      );
+    }
+
+    // Broadcast deletion to SSE clients (non-blocking)
+    broadcastMessageDeleted(messageId);
+
+    return NextResponse.json({ success: true, messageId });
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete message' },
       { status: 500 }
     );
   }

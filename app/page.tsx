@@ -124,21 +124,31 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">TempChat</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-indigo-50 px-4 sm:px-6 py-8 sm:py-12">
+      <div className="bg-white p-6 sm:p-8 md:p-10 rounded-2xl shadow-large w-full max-w-md animate-fade-in">
+        {/* Logo/Title Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-600 mb-4 shadow-medium">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">TempChat</h1>
+          <p className="text-sm sm:text-base text-gray-500">Sign in to continue</p>
+        </div>
+
         <form 
           onSubmit={(e) => {
             console.log('[LoginPage] Form onSubmit event triggered');
             handleSubmit(e);
           }}
-          className="space-y-4" 
+          className="space-y-5 sm:space-y-6" 
           noValidate 
           action="#" 
           method="post"
         >
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="username" className="block text-sm font-semibold text-gray-700 mb-2">
               Username
             </label>
             <input
@@ -149,13 +159,14 @@ export default function LoginPage() {
                 console.log('[LoginPage] Username changed:', e.target.value);
                 setUsername(e.target.value);
               }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-chat-border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-sm sm:text-base transition-all shadow-soft focus:shadow-medium"
+              placeholder="Enter your username"
               required
               autoFocus
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
               Password
             </label>
             <div className="relative">
@@ -167,14 +178,16 @@ export default function LoginPage() {
                   console.log('[LoginPage] Password changed, length:', e.target.value.length);
                   setPassword(e.target.value);
                 }}
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 pr-12 border border-chat-border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-sm sm:text-base transition-all shadow-soft focus:shadow-medium"
+                placeholder="Enter your password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-lg p-1 transition-colors"
                 tabIndex={-1}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +203,12 @@ export default function LoginPage() {
             </div>
           </div>
           {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 flex items-center gap-2 animate-fade-in">
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
           )}
           <button
             type="submit"
@@ -201,9 +219,16 @@ export default function LoginPage() {
               console.log('[LoginPage] Current username:', username);
               console.log('[LoginPage] Current password length:', password.length);
             }}
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-primary-600 text-white py-3 sm:py-3.5 px-4 rounded-xl hover:bg-primary-700 active:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-medium hover:shadow-large font-semibold text-sm sm:text-base"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Logging in...
+              </span>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
       </div>

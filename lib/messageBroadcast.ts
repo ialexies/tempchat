@@ -25,6 +25,20 @@ export async function broadcastNewMessages() {
   });
 }
 
+// Broadcast message deletion to all connected clients
+export function broadcastMessageDeleted(messageId: string) {
+  const data = JSON.stringify({ deletedMessageId: messageId });
+  
+  messageClients.forEach((_lastCount, client) => {
+    try {
+      client.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
+    } catch (error) {
+      // Client disconnected, remove from map
+      messageClients.delete(client);
+    }
+  });
+}
+
 // Get the messageClients map for use in stream route
 export function getMessageClients() {
   return messageClients;
