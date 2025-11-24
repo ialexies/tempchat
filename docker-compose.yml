@@ -10,7 +10,14 @@ services:
       - "3001:3000"
     volumes:
       # Persist data directory (users, messages, uploads)
+      # Option 1: Bind mount (requires proper host permissions)
+      # If you get permission errors, ensure the host directory is writable:
+      # sudo chown -R 1001:1001 ./data
+      # sudo chmod -R 755 ./data
       - ./data:/app/data
+      # Option 2: Named volume (recommended for production, Docker manages permissions)
+      # Uncomment the line below and comment out the bind mount above:
+      # - tempchat_data:/app/data
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
@@ -22,4 +29,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+# Uncomment if using named volume (Option 2 above)
+# volumes:
+#   tempchat_data:
 

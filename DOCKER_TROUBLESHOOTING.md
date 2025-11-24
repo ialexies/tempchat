@@ -85,3 +85,80 @@ npm run build
 
 If this works, the issue is Docker-specific. If it fails, fix the code first.
 
+## Runtime Permission Errors
+
+### Symptoms
+- `SQLITE_CANTOPEN: unable to open database file`
+- `EACCES: permission denied, mkdir '/app/data/uploads'`
+- Login fails with "Internal server error"
+
+### Root Cause
+When using bind mounts (`./data:/app/data`), the host directory permissions override the container's directory permissions. The container runs as user `nextjs` (UID 1001), but the host directory may be owned by a different user.
+
+### Solutions
+
+#### Solution 1: Fix Host Directory Permissions (Recommended for Bind Mounts)
+SSH into your Ubuntu server and run:
+```bash
+# Navigate to your project directory
+cd /path/to/your/tempchat
+
+# Fix ownership (UID 1001 = nextjs user in container)
+sudo chown -R 1001:1001 ./data
+
+# Fix permissions
+sudo chmod -R 755 ./data
+
+# Ensure uploads directory exists
+sudo mkdir -p ./data/uploads
+sudo chown -R 1001:1001 ./data/uploads
+sudo chmod -R 755 ./data/uploads
+```
+
+#### Solution 2: Use Named Volume (Recommended for Production)
+Update `docker-compose.yml` to use a named volume instead of a bind mount:
+
+```yaml
+volumes:
+  # Comment out the bind mount:
+  # - ./data:/app/data
+  # Use named volume instead:
+  - tempchat_data:/app/data
+
+# Add at the bottom of the file:
+volumes:
+  tempchat_data:
+```
+
+Then recreate the stack in Portainer. Docker will automatically manage permissions for named volumes.
+
+#### Solution 3: Run Container with User Mapping
+If your host user ID is different, you can map it in `docker-compose.yml`:
+
+```yaml
+services:
+  tempchat:
+    # ... other config ...
+    user: "${UID:-1001}:${GID:-1001}"
+```
+
+Then set environment variables:
+```bash
+export UID=$(id -u)
+export GID=$(id -g)
+docker-compose up -d
+```
+
+#### Solution 4: Entrypoint Script (Automatic Fix)
+The Dockerfile includes an entrypoint script that attempts to fix permissions on startup. However, this only works if the container starts as root (which it does by default). If you're running with user restrictions, use Solution 1 or 2 instead.
+
+### Verification
+After applying a solution, check the logs:
+```bash
+docker logs tempchat
+```
+
+You should no longer see permission errors. The app should be able to:
+- Create/access `tempchat.db` in `/app/data/`
+- Create files in `/app/data/uploads/`
+

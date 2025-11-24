@@ -75,8 +75,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install runtime dependencies for native modules
-RUN apk add --no-cache sqlite
+# Install runtime dependencies for native modules and su-exec for user switching
+RUN apk add --no-cache sqlite su-exec
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs && \
@@ -87,16 +87,19 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
+# Copy entrypoint script
+COPY --chown=root:root docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Create data directory with proper permissions
 RUN mkdir -p /app/data/uploads && \
     chown -R nextjs:nodejs /app/data /app/public
-
-USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "server.js"]
 
