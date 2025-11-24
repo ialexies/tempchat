@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -24,11 +24,21 @@ export default function AdminPage() {
     isAdmin: false,
   });
 
-  useEffect(() => {
-    checkAdminAndLoadUsers();
+  const loadUsers = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      const data = await response.json();
+      if (response.ok) {
+        setUsers(data.users);
+      } else {
+        setError(data.error || 'Failed to load users');
+      }
+    } catch (err) {
+      setError('Failed to load users');
+    }
   }, []);
 
-  const checkAdminAndLoadUsers = async () => {
+  const checkAdminAndLoadUsers = useCallback(async () => {
     try {
       // Check if user is admin
       const checkResponse = await fetch('/api/admin/check');
@@ -47,21 +57,11 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, loadUsers]);
 
-  const loadUsers = async () => {
-    try {
-      const response = await fetch('/api/admin/users');
-      const data = await response.json();
-      if (response.ok) {
-        setUsers(data.users);
-      } else {
-        setError(data.error || 'Failed to load users');
-      }
-    } catch (err) {
-      setError('Failed to load users');
-    }
-  };
+  useEffect(() => {
+    checkAdminAndLoadUsers();
+  }, [checkAdminAndLoadUsers]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();

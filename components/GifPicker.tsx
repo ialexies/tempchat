@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { GiphyGif } from '@/types';
 
 interface GifPickerProps {
@@ -95,10 +96,13 @@ export default function GifPicker({ onSelect }: GifPickerProps) {
                 onClick={() => onSelect(gif.images.fixed_height.url)}
                 className="relative aspect-square overflow-hidden rounded hover:ring-2 hover:ring-indigo-500 transition-all"
               >
-                <img
+                <Image
                   src={gif.images.fixed_height.url}
                   alt={gif.title}
+                  width={parseInt(gif.images.fixed_height.width, 10)}
+                  height={parseInt(gif.images.fixed_height.height, 10)}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               </button>
             ))}

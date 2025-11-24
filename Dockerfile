@@ -47,9 +47,26 @@ RUN echo "=== Checking Required Files ===" && \
 ARG NEXT_PUBLIC_GIPHY_API_KEY
 ENV NEXT_PUBLIC_GIPHY_API_KEY=${NEXT_PUBLIC_GIPHY_API_KEY:-}
 
-# Build the application
-# Using explicit error handling to ensure errors are visible
-RUN npm run build 2>&1
+# Run TypeScript check first to catch type errors early
+RUN echo "=== TypeScript Check ===" && \
+    npx tsc --noEmit 2>&1 | tee /tmp/tsc.log || { \
+        echo "TypeScript errors found:"; \
+        cat /tmp/tsc.log; \
+        exit 1; \
+    } && \
+    echo "TypeScript check passed"
+
+# Build the application with error capture
+RUN echo "=== Next.js Build ===" && \
+    npm run build 2>&1 | tee /tmp/build.log || { \
+        echo ""; \
+        echo "=== BUILD FAILED - Error Output ==="; \
+        cat /tmp/build.log; \
+        echo ""; \
+        echo "=== End of Error Output ==="; \
+        exit 1; \
+    } && \
+    echo "Build completed successfully"
 
 # Stage 2: Production image
 FROM node:20-alpine AS runner

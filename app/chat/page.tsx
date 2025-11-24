@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Message, Attachment } from '@/types';
 import ChatInput from '@/components/ChatInput';
 import { getAvatarData } from '@/lib/avatar';
@@ -123,8 +124,8 @@ export default function ChatPage() {
         if (data.messages) {
           // Update if messages changed (length, last message, or any message IDs differ)
           setMessages(prev => {
-            const prevIds = new Set(prev.map(m => m.id));
-            const newIds = new Set(data.messages.map((m: Message) => m.id));
+            const prevIds = new Set<string>(prev.map(m => m.id));
+            const newIds = new Set<string>(data.messages.map((m: Message) => m.id));
             
             // Check if any IDs differ (additions or deletions)
             if (prev.length !== data.messages.length || 
@@ -387,12 +388,14 @@ export default function ChatPage() {
                         </button>
                       )}
                       {msg.gifUrl && (
-                        <div className="mb-2 last:mb-0">
-                          <img
+                        <div className="mb-2 last:mb-0 relative w-full">
+                          <Image
                             src={msg.gifUrl}
                             alt="GIF"
+                            width={500}
+                            height={500}
                             className="max-w-full rounded-lg"
-                            loading="lazy"
+                            unoptimized
                           />
                         </div>
                       )}
@@ -408,12 +411,16 @@ export default function ChatPage() {
                           {msg.attachments.map((att, attIndex) => (
                             <div key={attIndex} className={attIndex > 0 ? 'border-t border-opacity-20 pt-2 mt-2' : ''}>
                               {att.mimeType?.startsWith('image/') ? (
-                                <img
-                                  src={att.url}
-                                  alt={att.originalName}
-                                  className="max-w-full rounded-lg shadow-soft"
-                                  loading="lazy"
-                                />
+                                <div className="relative w-full">
+                                  <Image
+                                    src={att.url}
+                                    alt={att.originalName}
+                                    width={800}
+                                    height={600}
+                                    className="max-w-full rounded-lg shadow-soft"
+                                    unoptimized
+                                  />
+                                </div>
                               ) : (
                                 <a
                                   href={att.url}

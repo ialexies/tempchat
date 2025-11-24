@@ -9,6 +9,18 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'media.giphy.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.giphy.com',
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
