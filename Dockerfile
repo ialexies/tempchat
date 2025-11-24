@@ -27,25 +27,48 @@ COPY . .
 RUN mkdir -p public
 
 # Verify required files exist
-RUN echo "Checking required files..." && \
-    ls -la && \
-    test -f next.config.js || (echo "ERROR: next.config.js missing" && exit 1) && \
-    test -f tsconfig.json || (echo "ERROR: tsconfig.json missing" && exit 1) && \
-    test -f postcss.config.js || (echo "ERROR: postcss.config.js missing" && exit 1) && \
-    test -f tailwind.config.ts || (echo "ERROR: tailwind.config.ts missing" && exit 1) && \
-    echo "✓ All required config files found"
+RUN echo "=== Checking Required Files ===" && \
+    echo "Root files:" && ls -la | head -30 && \
+    echo "" && \
+    echo "Checking config files..." && \
+    test -f next.config.js && echo "✓ next.config.js" || (echo "✗ ERROR: next.config.js missing" && exit 1) && \
+    test -f tsconfig.json && echo "✓ tsconfig.json" || (echo "✗ ERROR: tsconfig.json missing" && exit 1) && \
+    test -f postcss.config.js && echo "✓ postcss.config.js" || (echo "✗ ERROR: postcss.config.js missing" && exit 1) && \
+    test -f tailwind.config.ts && echo "✓ tailwind.config.ts" || (echo "✗ ERROR: tailwind.config.ts missing" && exit 1) && \
+    echo "" && \
+    echo "Checking source directories..." && \
+    test -d app && echo "✓ app/ directory exists" || (echo "✗ ERROR: app/ directory missing" && exit 1) && \
+    test -d lib && echo "✓ lib/ directory exists" || (echo "✗ ERROR: lib/ directory missing" && exit 1) && \
+    test -d types && echo "✓ types/ directory exists" || (echo "✗ ERROR: types/ directory missing" && exit 1) && \
+    echo "" && \
+    echo "=== All Required Files Found ==="
 
 # Build arguments for environment variables needed at build time
 ARG NEXT_PUBLIC_GIPHY_API_KEY
 ENV NEXT_PUBLIC_GIPHY_API_KEY=${NEXT_PUBLIC_GIPHY_API_KEY:-}
 
-# Build the application with detailed output
-RUN echo "=== Starting Next.js build ===" && \
-    echo "Node version: $(node --version)" && \
-    echo "NPM version: $(npm --version)" && \
-    echo "Working directory: $(pwd)" && \
-    echo "Files in app directory:" && ls -la app/ | head -20 && \
-    npm run build
+# Build the application with maximum verbosity
+RUN echo "=== Build Environment ===" && \
+    node --version && \
+    npm --version && \
+    echo "PWD: $(pwd)" && \
+    echo "" && \
+    echo "=== Starting Next.js Build ===" && \
+    NODE_OPTIONS="--max-old-space-size=4096" npm run build 2>&1 || { \
+        echo ""; \
+        echo "=== BUILD FAILED ==="; \
+        echo "Exit code: $?"; \
+        echo "Checking for error logs..."; \
+        if [ -d .next ]; then \
+            echo "Build directory exists, checking for error files..."; \
+            find .next -name "*.log" -o -name "*error*" 2>/dev/null | head -10 || true; \
+        fi; \
+        exit 1; \
+    } && \
+    echo "" && \
+    echo "=== Build Successful ===" && \
+    echo "Checking build output..." && \
+    ls -la .next/standalone 2>/dev/null && echo "✓ Standalone output exists" || echo "⚠ Standalone output check"
 
 # Stage 2: Production image
 FROM node:20-alpine AS runner
