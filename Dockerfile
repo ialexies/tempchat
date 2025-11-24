@@ -7,23 +7,45 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ sqlite-dev
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY package.json ./
+COPY package-lock.json* ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (devDependencies are needed for build)
+# Use npm install if package-lock.json doesn't exist, otherwise use npm ci
+RUN if [ -f package-lock.json ]; then \
+      echo "Using npm ci (package-lock.json found)"; \
+      npm ci; \
+    else \
+      echo "Using npm install (no package-lock.json)"; \
+      npm install; \
+    fi
 
-# Copy source code
+# Copy all source files (excluding what's in .dockerignore)
 COPY . .
 
 # Create public directory if it doesn't exist
 RUN mkdir -p public
 
+# Verify required files exist
+RUN echo "Checking required files..." && \
+    ls -la && \
+    test -f next.config.js || (echo "ERROR: next.config.js missing" && exit 1) && \
+    test -f tsconfig.json || (echo "ERROR: tsconfig.json missing" && exit 1) && \
+    test -f postcss.config.js || (echo "ERROR: postcss.config.js missing" && exit 1) && \
+    test -f tailwind.config.ts || (echo "ERROR: tailwind.config.ts missing" && exit 1) && \
+    echo "✓ All required config files found"
+
 # Build arguments for environment variables needed at build time
 ARG NEXT_PUBLIC_GIPHY_API_KEY
-ENV NEXT_PUBLIC_GIPHY_API_KEY=$NEXT_PUBLIC_GIPHY_API_KEY
+ENV NEXT_PUBLIC_GIPHY_API_KEY=${NEXT_PUBLIC_GIPHY_API_KEY:-}
 
-# Build the application
-RUN npm run build
+# Build the application with detailed output
+RUN echo "=== Starting Next.js build ===" && \
+    echo "Node version: $(node --version)" && \
+    echo "NPM version: $(npm --version)" && \
+    echo "Working directory: $(pwd)" && \
+    echo "Files in app directory:" && ls -la app/ | head -20 && \
+    npm run build
 
 # Stage 2: Production image
 FROM node:20-alpine AS runner
