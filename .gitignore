@@ -35,4 +35,6 @@ yarn-error.log*
 /data/users.json
 /data/messages.json
 /data/uploads/
+/data/*.db
+/data/*.db-journal
 
