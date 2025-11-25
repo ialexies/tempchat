@@ -6,13 +6,23 @@ import Image from 'next/image';
 import { Message, Attachment } from '@/types';
 import ChatInput from '@/components/ChatInput';
 import { getAvatarData } from '@/lib/avatar';
+import {
+  requestNotificationPermission,
+  showNotification,
+  updateDocumentTitle,
+  isTabVisible,
+} from '@/lib/notifications';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [username, setUsername] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isTabFocused, setIsTabFocused] = useState(true);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastViewedTimestampRef = useRef<number>(Date.now());
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +39,10 @@ export default function ChatPage() {
           setUsername(data.username);
           setIsAdmin(data.isAdmin || false);
           loadMessages();
+          // Check current notification permission status
+          if ('Notification' in window) {
+            setNotificationPermission(Notification.permission);
+          }
           // Use polling for reliable real-time updates (works better in serverless)
           cleanup = startPolling();
         } else {
@@ -48,7 +62,47 @@ export default function ChatPage() {
 
   useEffect(() => {
     scrollToBottom();
+    // Update last viewed timestamp when messages change and tab is focused
+    if (isTabFocused && messages.length > 0) {
+      lastViewedTimestampRef.current = messages[messages.length - 1].timestamp;
+    }
+  }, [messages, isTabFocused]);
+
+  // Check notification permission status on mount and when it might change
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Track tab visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const visible = isTabVisible();
+      setIsTabFocused(visible);
+      
+      // When tab becomes visible, reset unread count and update last viewed timestamp
+      if (visible) {
+        setUnreadCount(0);
+        if (messages.length > 0) {
+          lastViewedTimestampRef.current = messages[messages.length - 1].timestamp;
+        }
+        updateDocumentTitle(0);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    setIsTabFocused(isTabVisible());
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [messages]);
+
+  // Update document title when unread count changes
+  useEffect(() => {
+    updateDocumentTitle(unreadCount);
+  }, [unreadCount]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,11 +114,78 @@ export default function ChatPage() {
       const data = await response.json();
       if (data.messages) {
         setMessages(data.messages);
+        // Set initial last viewed timestamp
+        if (data.messages.length > 0) {
+          lastViewedTimestampRef.current = data.messages[data.messages.length - 1].timestamp;
+        }
       }
     } catch (error) {
       console.error('Failed to load messages:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle new messages and show notifications
+  const handleNewMessages = (newMessages: Message[], previousMessages: Message[]) => {
+    if (newMessages.length === 0) return;
+
+    const previousIds = new Set(previousMessages.map(m => m.id));
+    const actualNewMessages = newMessages.filter(m => !previousIds.has(m.id));
+
+    if (actualNewMessages.length === 0) return;
+
+    // Filter out own messages and messages before last viewed timestamp
+    const unreadMessages = actualNewMessages.filter(msg => {
+      const isFromOtherUser = msg.username !== username;
+      const isAfterLastViewed = msg.timestamp > lastViewedTimestampRef.current;
+      return isFromOtherUser && isAfterLastViewed;
+    });
+
+    if (unreadMessages.length === 0) return;
+
+    // Check if tab is focused at the moment (real-time check)
+    const tabIsCurrentlyFocused = isTabVisible();
+    
+    // If tab is not focused, show notifications and update unread count
+    if (!tabIsCurrentlyFocused) {
+      // Show notification for each new message from other users
+      unreadMessages.forEach(msg => {
+        let messageText = '';
+        if (msg.message) {
+          messageText = msg.message;
+        } else if (msg.gifUrl) {
+          messageText = 'Sent a GIF';
+        } else if (msg.attachments && msg.attachments.length > 0) {
+          messageText = `Sent ${msg.attachments.length} attachment${msg.attachments.length > 1 ? 's' : ''}`;
+        } else {
+          messageText = 'Sent a message';
+        }
+        showNotification(msg.username, messageText);
+      });
+
+      // Update unread count (document title will be updated via useEffect)
+      setUnreadCount(prev => prev + unreadMessages.length);
+    } else {
+      // Tab is focused - user is actively viewing, so no notification needed
+      // But still update unread count for title badge (in case user switches back quickly)
+      setUnreadCount(prev => prev + unreadMessages.length);
+    }
+  };
+
+  const handleRequestNotificationPermission = async () => {
+    try {
+      const permission = await requestNotificationPermission();
+      setNotificationPermission(permission);
+      
+      if (permission === 'granted') {
+        // Show a test notification
+        showNotification('TempChat', 'Notifications enabled! You will now receive alerts for new messages.');
+      } else if (permission === 'denied') {
+        alert('Notification permission was denied. Please enable it in your browser settings to receive notifications.');
+      }
+    } catch (error) {
+      console.error('Failed to request notification permission:', error);
     }
   };
 
@@ -87,7 +208,9 @@ export default function ChatPage() {
                 const existingIds = new Set(prev.map(m => m.id));
                 const newMessages = data.messages.filter((m: Message) => !existingIds.has(m.id));
                 if (newMessages.length > 0) {
-                  return [...prev, ...newMessages];
+                  const updated = [...prev, ...newMessages];
+                  handleNewMessages(updated, prev);
+                  return updated;
                 }
                 return prev;
               });
@@ -133,6 +256,7 @@ export default function ChatPage() {
                 prevIds.size !== newIds.size ||
                 Array.from(prevIds).some(id => !newIds.has(id)) ||
                 Array.from(newIds).some(id => !prevIds.has(id))) {
+              handleNewMessages(data.messages, prev);
               return data.messages;
             }
             return prev;
@@ -156,7 +280,12 @@ export default function ChatPage() {
 
       const data = await response.json();
       if (data.success && data.message) {
-        setMessages(prev => [...prev, data.message]);
+        setMessages(prev => {
+          const updated = [...prev, data.message];
+          // Update last viewed timestamp for own messages
+          lastViewedTimestampRef.current = data.message.timestamp;
+          return updated;
+        });
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -242,6 +371,19 @@ export default function ChatPage() {
 
             {/* User Info and Actions */}
             <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+              {/* Notification Permission Button */}
+              {notificationPermission !== 'granted' && 'Notification' in window && (
+                <button
+                  onClick={handleRequestNotificationPermission}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-soft hover:shadow-medium"
+                  title="Enable notifications"
+                  aria-label="Enable notifications"
+                >
+                  <span className="hidden sm:inline">🔔 Enable Notifications</span>
+                  <span className="sm:hidden">🔔</span>
+                </button>
+              )}
+
               {/* User Info - Hidden on mobile, visible on tablet+ */}
               <div className="hidden sm:flex items-center gap-2 md:gap-3">
                 <div
@@ -389,13 +531,12 @@ export default function ChatPage() {
                       )}
                       {msg.gifUrl && (
                         <div className="mb-2 last:mb-0 relative w-full">
-                          <Image
+                          <img
                             src={msg.gifUrl}
                             alt="GIF"
-                            width={500}
-                            height={500}
-                            className="max-w-full rounded-lg"
-                            unoptimized
+                            className="max-w-full h-auto rounded-lg"
+                            style={{ maxWidth: '100%', height: 'auto' }}
+                            loading="lazy"
                           />
                         </div>
                       )}

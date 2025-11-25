@@ -34,3 +34,5 @@ if errorlevel 1 (
     echo   docker run -p 3000:3000 tempchat-test
 )
 
+
+
