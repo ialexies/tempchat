@@ -510,10 +510,14 @@ export default function ChatPage() {
 
                     {/* Message bubble */}
                     <div
-                      className={`relative rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 shadow-message ${
+                      className={`relative rounded-2xl ${
+                        msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)
+                          ? ''
+                          : 'px-3 py-2 sm:px-4 sm:py-2.5'
+                      } ${
                         isOwnMessage
-                          ? 'bg-primary-600 text-white rounded-br-md shadow-message-own'
-                          : 'bg-white text-gray-800 border border-chat-border rounded-bl-md'
+                          ? 'bg-primary-600 text-white rounded-br-md shadow-none outline-none border-0'
+                          : 'bg-white text-gray-800 border border-chat-border rounded-bl-md shadow-message'
                       }`}
                     >
                       {/* Delete button for messages without avatar (grouped messages) */}
@@ -530,11 +534,17 @@ export default function ChatPage() {
                         </button>
                       )}
                       {msg.gifUrl && (
-                        <div className="mb-2 last:mb-0 relative w-full">
+                        <div className={`relative w-full ${msg.message || (msg.attachments && msg.attachments.length > 0) ? 'mb-2 last:mb-0' : ''}`}>
                           <img
                             src={msg.gifUrl}
                             alt="GIF"
-                            className="max-w-full h-auto rounded-lg"
+                            className={`w-full h-auto ${
+                              msg.message || (msg.attachments && msg.attachments.length > 0)
+                                ? 'rounded-lg'
+                                : isOwnMessage
+                                  ? 'rounded-2xl rounded-br-md'
+                                  : 'rounded-2xl rounded-bl-md'
+                            }`}
                             style={{ maxWidth: '100%', height: 'auto' }}
                             loading="lazy"
                           />

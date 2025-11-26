@@ -38,7 +38,7 @@ const config: Config = {
         'medium': '0 4px 12px rgba(0, 0, 0, 0.1)',
         'large': '0 8px 24px rgba(0, 0, 0, 0.12)',
         'message': '0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.08)',
-        'message-own': '0 2px 4px rgba(99, 102, 241, 0.2), 0 4px 12px rgba(99, 102, 241, 0.15)',
+        'message-own': 'none',
       },
       borderRadius: {
         'xl': '1rem',

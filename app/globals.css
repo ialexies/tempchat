@@ -87,6 +87,13 @@ html {
   animation: messageSlideIn 0.3s ease-out;
 }
 
+/* Remove shadow and border from own messages */
+.bg-primary-600 {
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
 /* Loading spinner */
 @keyframes spin {
   to {

@@ -606,12 +606,29 @@ Create a new user.
 }
 ```
 
+```json
+{
+  "error": "Username must be at least 3 characters"
+}
+```
+
+```json
+{
+  "error": "Password must be at least 6 characters"
+}
+```
+
 **Response (409 Conflict):**
 ```json
 {
   "error": "Username already exists"
 }
 ```
+
+**Validation Rules:**
+- `username`: Required, must be at least 3 characters
+- `password`: Required, must be at least 6 characters
+- `isAdmin`: Optional boolean, defaults to `false`
 
 **Example:**
 ```bash
@@ -654,6 +671,24 @@ Update an existing user.
   "error": "Username is required"
 }
 ```
+
+```json
+{
+  "error": "Password must be at least 6 characters"
+}
+```
+
+```json
+{
+  "error": "No updates provided"
+}
+```
+
+**Validation Rules:**
+- `username`: Required
+- `password`: Optional, but if provided, must be at least 6 characters
+- `isAdmin`: Optional boolean
+- At least one of `password` or `isAdmin` must be provided
 
 **Example:**
 ```bash
