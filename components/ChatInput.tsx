@@ -164,17 +164,17 @@ export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onC
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
         {/* Reply preview banner */}
         {replyingTo && replyAvatar && (
-          <div className="mb-2 sm:mb-3 flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-lg px-3 py-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="mb-2 sm:mb-3 flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-lg px-2 sm:px-3 py-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0"
                 style={{ backgroundColor: replyAvatar.color }}
               >
                 {replyAvatar.initials}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-semibold text-primary-700">Replying to {replyingTo.username}</div>
-                <div className="text-xs text-gray-600 truncate">{replyPreviewText}</div>
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="text-xs font-semibold text-primary-700 line-clamp-1">Replying to {replyingTo.username}</div>
+                <div className="text-xs text-gray-600 line-clamp-1">{replyPreviewText}</div>
               </div>
             </div>
             <button

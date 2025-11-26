@@ -38,7 +38,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
-    
+
     // Check authentication
     fetch('/api/auth/check', {
       credentials: 'include', // Ensure cookies are sent
@@ -65,7 +65,7 @@ export default function ChatPage() {
         // Network error, redirect to login
         router.push('/');
       });
-    
+
     return () => {
       if (cleanup) cleanup();
     };
@@ -91,7 +91,7 @@ export default function ChatPage() {
     const handleVisibilityChange = () => {
       const visible = isTabVisible();
       setIsTabFocused(visible);
-      
+
       // When tab becomes visible, reset unread count and update last viewed timestamp
       if (visible) {
         setUnreadCount(0);
@@ -157,7 +157,7 @@ export default function ChatPage() {
 
     // Check if tab is focused at the moment (real-time check)
     const tabIsCurrentlyFocused = isTabVisible();
-    
+
     // If tab is not focused, show notifications and update unread count
     if (!tabIsCurrentlyFocused) {
       // Show notification for each new message from other users
@@ -188,7 +188,7 @@ export default function ChatPage() {
     try {
       const permission = await requestNotificationPermission();
       setNotificationPermission(permission);
-      
+
       if (permission === 'granted') {
         // Show a test notification
         showNotification('TempChat', 'Notifications enabled! You will now receive alerts for new messages.');
@@ -203,13 +203,13 @@ export default function ChatPage() {
   const setupSSE = () => {
     try {
       const eventSource = new EventSource('/api/messages/stream');
-      
+
       eventSource.onmessage = (event) => {
         // Handle keepalive messages
         if (event.data.startsWith(': ')) {
           return;
         }
-        
+
         // Handle data messages
         if (event.data.startsWith('data: ')) {
           try {
@@ -260,13 +260,13 @@ export default function ChatPage() {
           setMessages(prev => {
             const prevIds = new Set<string>(prev.map(m => m.id));
             const newIds = new Set<string>(data.messages.map((m: Message) => m.id));
-            
+
             // Check if any IDs differ (additions or deletions)
-            if (prev.length !== data.messages.length || 
-                prev[prev.length - 1]?.id !== data.messages[data.messages.length - 1]?.id ||
-                prevIds.size !== newIds.size ||
-                Array.from(prevIds).some(id => !newIds.has(id)) ||
-                Array.from(newIds).some(id => !prevIds.has(id))) {
+            if (prev.length !== data.messages.length ||
+              prev[prev.length - 1]?.id !== data.messages[data.messages.length - 1]?.id ||
+              prevIds.size !== newIds.size ||
+              Array.from(prevIds).some(id => !newIds.has(id)) ||
+              Array.from(newIds).some(id => !prevIds.has(id))) {
               handleNewMessages(data.messages, prev);
               return data.messages;
             }
@@ -277,7 +277,7 @@ export default function ChatPage() {
         console.error('Polling error:', error);
       }
     }, 1500); // Poll every 1.5 seconds for near real-time
-    
+
     return () => clearInterval(pollInterval);
   };
 
@@ -329,7 +329,7 @@ export default function ChatPage() {
 
   const handleDeleteMessage = async (messageId: string) => {
     if (!isAdmin) return;
-    
+
     if (!confirm('Are you sure you want to delete this message?')) {
       return;
     }
@@ -436,7 +436,7 @@ export default function ChatPage() {
         setPosition({ x: 0, y: 0 });
       }
     };
-    
+
     if (lightboxImage) {
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleEscape);
@@ -445,7 +445,7 @@ export default function ChatPage() {
       setZoom(1);
       setPosition({ x: 0, y: 0 });
     }
-    
+
     return () => {
       window.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
@@ -737,18 +737,16 @@ export default function ChatPage() {
 
                     {/* Message bubble */}
                     <div
-                      className={`relative rounded-2xl ${
-                        ((msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)) ||
-                         (!msg.gifUrl && !msg.message && msg.attachments && msg.attachments.length > 0 && 
-                          msg.attachments.every(att => att.mimeType?.startsWith('image/')))
+                      className={`relative rounded-2xl ${((msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)) ||
+                          (!msg.gifUrl && !msg.message && msg.attachments && msg.attachments.length > 0 &&
+                            msg.attachments.every(att => att.mimeType?.startsWith('image/')))
                         )
                           ? ''
                           : 'px-3 py-2 sm:px-4 sm:py-2.5'
-                      } ${
-                        isOwnMessage
+                        } ${isOwnMessage
                           ? 'bg-chat-own text-white rounded-br-md shadow-none outline-none border-0'
                           : 'bg-white dark:bg-chat-other-dark text-gray-800 dark:text-text-primary-dark border border-chat-border dark:border-chat-border-dark rounded-bl-md shadow-message dark:shadow-message-dark'
-                      }`}
+                        }`}
                     >
                       {/* Reply preview */}
                       {msg.replyToId && (() => {
@@ -756,33 +754,32 @@ export default function ChatPage() {
                         if (!originalMsg) return null;
                         const originalAvatar = getAvatarData(originalMsg.username);
                         const isOriginalOwn = originalMsg.username === username;
-                        const previewText = originalMsg.message 
+                        const previewText = originalMsg.message
                           ? (originalMsg.message.length > 100 ? originalMsg.message.substring(0, 100) + '...' : originalMsg.message)
-                          : originalMsg.gifUrl 
-                            ? 'GIF' 
+                          : originalMsg.gifUrl
+                            ? 'GIF'
                             : originalMsg.attachments && originalMsg.attachments.length > 0
                               ? `📎 ${originalMsg.attachments[0].originalName}`
                               : 'Message';
-                        
+
                         return (
-                          <div 
+                          <div
                             onClick={() => handleReplyPreviewClick(msg.replyToId!)}
-                            className={`mb-2 pb-2 border-l-4 ${
-                              isOwnMessage 
-                                ? 'border-white border-opacity-50 pl-2' 
+                            className={`mb-2 pb-2 border-l-4 ${isOwnMessage
+                                ? 'border-white border-opacity-50 pl-2'
                                 : 'border-primary-500 pl-2'
-                            } cursor-pointer hover:opacity-80 transition-opacity`}
+                              } cursor-pointer hover:opacity-80 transition-opacity overflow-hidden`}
                           >
-                            <div className={`flex items-center gap-1.5 mb-0.5 ${isOwnMessage ? 'text-white text-opacity-90' : 'text-primary-600'}`}>
+                            <div className={`flex items-center gap-1.5 mb-0.5 overflow-hidden ${isOwnMessage ? 'text-white text-opacity-90' : 'text-primary-600'}`}>
                               <div
                                 className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[8px] font-semibold flex-shrink-0"
                                 style={{ backgroundColor: originalAvatar.color }}
                               >
                                 {originalAvatar.initials}
                               </div>
-                              <span className="text-xs font-semibold">{originalMsg.username}</span>
+                              <span className="text-xs font-semibold line-clamp-1">{originalMsg.username}</span>
                             </div>
-                            <div className={`text-xs truncate ${isOwnMessage ? 'text-white text-opacity-75' : 'text-text-secondary dark:text-text-secondary-dark'}`}>
+                            <div className={`text-xs line-clamp-2 ${isOwnMessage ? 'text-white text-opacity-75' : 'text-text-secondary dark:text-text-secondary-dark'}`}>
                               {previewText}
                             </div>
                           </div>
@@ -806,71 +803,68 @@ export default function ChatPage() {
                           <img
                             src={msg.gifUrl}
                             alt="GIF"
-                            className={`w-full h-auto ${
-                              msg.message || (msg.attachments && msg.attachments.length > 0)
+                            className={`w-full h-auto ${msg.message || (msg.attachments && msg.attachments.length > 0)
                                 ? 'rounded-lg'
                                 : isOwnMessage
                                   ? 'rounded-2xl rounded-br-md'
                                   : 'rounded-2xl rounded-bl-md'
-                            }`}
+                              }`}
                             style={{ maxWidth: '100%', height: 'auto' }}
                             loading="lazy"
                           />
                         </div>
                       )}
-                      
+
                       {msg.message && (
                         <div className={`whitespace-pre-wrap break-words text-sm sm:text-base ${isOwnMessage ? 'text-white' : 'text-text-primary dark:text-text-primary-dark'}`}>
                           {msg.message}
                         </div>
                       )}
-                      
+
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className={msg.message || msg.gifUrl ? 'mt-2 space-y-2' : 'space-y-0'}>
                           {msg.attachments.map((att, attIndex) => {
-                            const isImageOnly = !msg.gifUrl && !msg.message && msg.attachments && 
+                            const isImageOnly = !msg.gifUrl && !msg.message && msg.attachments &&
                               msg.attachments.length > 0 && msg.attachments.every(a => a.mimeType?.startsWith('image/'));
                             const isLastImage = attIndex === (msg.attachments?.length ?? 0) - 1;
-                            
+
                             return (
-                            <div key={attIndex} className={attIndex > 0 && !isImageOnly ? 'border-t border-opacity-20 pt-2 mt-2' : ''}>
-                              {att.mimeType?.startsWith('image/') ? (
-                                <div 
-                                  className="relative w-full cursor-pointer"
-                                  onClick={() => setLightboxImage(att.url)}
-                                >
-                                  <Image
-                                    src={att.url}
-                                    alt={att.originalName}
-                                    width={800}
-                                    height={600}
-                                    className={`w-full ${
-                                      isImageOnly
-                                        ? isLastImage
-                                          ? isOwnMessage
-                                            ? 'rounded-2xl rounded-br-md'
-                                            : 'rounded-2xl rounded-bl-md'
-                                          : 'rounded-none'
-                                        : 'max-w-full rounded-lg shadow-soft'
-                                    }`}
-                                    unoptimized
-                                  />
-                                </div>
-                              ) : (
-                                <a
-                                  href={att.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`text-sm sm:text-base flex items-center gap-2 hover:opacity-80 transition-opacity ${
-                                    isOwnMessage ? 'text-white' : 'text-primary-600'
-                                  }`}
-                                >
-                                  <span>📎</span>
-                                  <span className="truncate">{att.originalName}</span>
-                                  <span className="text-xs opacity-75">({(att.size / 1024).toFixed(1)} KB)</span>
-                                </a>
-                              )}
-                            </div>
+                              <div key={attIndex} className={attIndex > 0 && !isImageOnly ? 'border-t border-opacity-20 pt-2 mt-2' : ''}>
+                                {att.mimeType?.startsWith('image/') ? (
+                                  <div
+                                    className="relative w-full cursor-pointer"
+                                    onClick={() => setLightboxImage(att.url)}
+                                  >
+                                    <Image
+                                      src={att.url}
+                                      alt={att.originalName}
+                                      width={800}
+                                      height={600}
+                                      className={`w-full ${isImageOnly
+                                          ? isLastImage
+                                            ? isOwnMessage
+                                              ? 'rounded-2xl rounded-br-md'
+                                              : 'rounded-2xl rounded-bl-md'
+                                            : 'rounded-none'
+                                          : 'max-w-full rounded-lg shadow-soft'
+                                        }`}
+                                      unoptimized
+                                    />
+                                  </div>
+                                ) : (
+                                  <a
+                                    href={att.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`text-sm sm:text-base flex items-center gap-2 hover:opacity-80 transition-opacity ${isOwnMessage ? 'text-white' : 'text-primary-600'
+                                      }`}
+                                  >
+                                    <span>📎</span>
+                                    <span className="truncate">{att.originalName}</span>
+                                    <span className="text-xs opacity-75">({(att.size / 1024).toFixed(1)} KB)</span>
+                                  </a>
+                                )}
+                              </div>
                             );
                           })}
                         </div>
@@ -889,8 +883,8 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <ChatInput 
-        onSendMessage={handleSendMessage} 
+      <ChatInput
+        onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}
         replyingTo={replyingTo}
         onCancelReply={handleCancelReply}
