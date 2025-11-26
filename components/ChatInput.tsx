@@ -3,13 +3,17 @@
 import { useState, useRef, useEffect } from 'react';
 import EmojiPicker from './EmojiPicker';
 import GifPicker from './GifPicker';
+import { Message } from '@/types';
+import { getAvatarData } from '@/lib/avatar';
 
 interface ChatInputProps {
-  onSendMessage: (message: string, gifUrl?: string, attachments?: any[]) => void;
+  onSendMessage: (message: string, gifUrl?: string, attachments?: any[], replyToId?: string) => void;
   onFileUpload: (file: File) => Promise<any>;
+  replyingTo?: Message | null;
+  onCancelReply?: () => void;
 }
 
-export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProps) {
+export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onCancelReply }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
@@ -22,11 +26,12 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() || attachments.length > 0) {
-      onSendMessage(message, undefined, attachments);
+      onSendMessage(message, undefined, attachments, replyingTo?.id);
       setMessage('');
       setAttachments([]);
       setShowEmojiPicker(false);
       setShowGifPicker(false);
+      onCancelReply?.();
     }
   };
 
@@ -36,8 +41,9 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
   };
 
   const handleGifSelect = (gifUrl: string) => {
-    onSendMessage('', gifUrl);
+    onSendMessage('', gifUrl, [], replyingTo?.id);
     setShowGifPicker(false);
+    onCancelReply?.();
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,9 +144,48 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
     }
   };
 
+  const replyAvatar = replyingTo ? getAvatarData(replyingTo.username) : null;
+  const replyPreviewText = replyingTo 
+    ? (replyingTo.message 
+        ? (replyingTo.message.length > 100 ? replyingTo.message.substring(0, 100) + '...' : replyingTo.message)
+        : replyingTo.gifUrl 
+          ? 'GIF' 
+          : replyingTo.attachments && replyingTo.attachments.length > 0
+            ? `📎 ${replyingTo.attachments[0].originalName}`
+            : 'Message')
+    : '';
+
   return (
     <div className="border-t border-chat-border bg-white shadow-soft">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
+        {/* Reply preview banner */}
+        {replyingTo && replyAvatar && (
+          <div className="mb-2 sm:mb-3 flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0"
+                style={{ backgroundColor: replyAvatar.color }}
+              >
+                {replyAvatar.initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold text-primary-700">Replying to {replyingTo.username}</div>
+                <div className="text-xs text-gray-600 truncate">{replyPreviewText}</div>
+              </div>
+            </div>
+            <button
+              onClick={onCancelReply}
+              className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Cancel reply"
+              title="Cancel reply"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+        
         {attachments.length > 0 && (
           <div className="mb-2 sm:mb-3 flex flex-wrap gap-2">
             {attachments.map((att, index) => (

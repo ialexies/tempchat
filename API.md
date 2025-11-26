@@ -179,7 +179,8 @@ Send a new message to the chat.
 {
   "message": "Hello, everyone!",
   "gifUrl": null,
-  "attachments": []
+  "attachments": [],
+  "replyToId": null
 }
 ```
 
@@ -188,7 +189,8 @@ Send a new message to the chat.
 {
   "message": "Check this out!",
   "gifUrl": "https://media.giphy.com/media/example.gif",
-  "attachments": []
+  "attachments": [],
+  "replyToId": null
 }
 ```
 
@@ -205,9 +207,26 @@ Send a new message to the chat.
       "mimeType": "application/pdf",
       "url": "/api/files/abc123.pdf"
     }
-  ]
+  ],
+  "replyToId": null
 }
 ```
+
+**Request Body (replying to a message):**
+```json
+{
+  "message": "I agree!",
+  "gifUrl": null,
+  "attachments": [],
+  "replyToId": "abc123"
+}
+```
+
+**Request Parameters:**
+- `message` (optional): Message text content
+- `gifUrl` (optional): URL of a GIF to share
+- `attachments` (optional): Array of file attachments
+- `replyToId` (optional): ID of the message being replied to
 
 **Response (200 OK):**
 ```json
@@ -219,7 +238,8 @@ Send a new message to the chat.
     "message": "Hello, everyone!",
     "timestamp": 1234567890,
     "attachments": [],
-    "gifUrl": null
+    "gifUrl": null,
+    "replyToId": null
   }
 }
 ```
@@ -238,12 +258,29 @@ Send a new message to the chat.
 }
 ```
 
-**Example:**
+**Response (404 Not Found):**
+```json
+{
+  "error": "Original message not found"
+}
+```
+
+**Note:** This error occurs when `replyToId` is provided but the referenced message doesn't exist.
+
+**Example (simple message):**
 ```bash
 curl -X POST http://localhost:3000/api/messages \
   -H "Content-Type: application/json" \
   -b cookies.txt \
   -d '{"message":"Hello, everyone!"}'
+```
+
+**Example (replying to a message):**
+```bash
+curl -X POST http://localhost:3000/api/messages \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"message":"I agree!","replyToId":"abc123"}'
 ```
 
 ---
@@ -751,6 +788,7 @@ interface Message {
   timestamp: number;             // Unix timestamp in milliseconds
   attachments?: Attachment[];   // Optional file attachments
   gifUrl?: string;              // Optional GIF URL
+  replyToId?: string;           // Optional ID of the message being replied to
 }
 ```
 
@@ -874,6 +912,17 @@ await fetch('/api/messages', {
   credentials: 'include',
   body: JSON.stringify({
     message: 'Hello, world!'
+  })
+});
+
+// 4a. Reply to a message
+await fetch('/api/messages', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({
+    message: 'I agree with that!',
+    replyToId: 'abc123' // ID of the message being replied to
   })
 });
 

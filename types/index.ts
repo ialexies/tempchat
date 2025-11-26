@@ -11,6 +11,7 @@ export interface Message {
   timestamp: number;
   attachments?: Attachment[];
   gifUrl?: string;
+  replyToId?: string;
 }
 
 export interface Attachment {

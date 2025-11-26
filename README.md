@@ -6,6 +6,7 @@ A modern, real-time chat application built with Next.js 14, TypeScript, and SQLi
 
 - ✅ **Simple Authentication** - JWT-based session management with bcrypt password hashing
 - ✅ **Real-time Messaging** - Server-Sent Events (SSE) for instant message delivery
+- ✅ **Reply to Messages** - Reply to specific messages with inline preview (like Facebook Messenger)
 - ✅ **File Attachments** - Upload and share any file type (up to 10MB)
 - ✅ **Emoji Picker** - Rich emoji support with visual picker
 - ✅ **Giphy Integration** - Search and share GIFs directly in chat
@@ -230,6 +231,16 @@ The application uses Server-Sent Events (SSE) for real-time message delivery:
 - Server polls SQLite database every second
 - New messages are broadcast to all connected clients
 - Keepalive messages sent to maintain connection
+
+### Reply to Messages
+
+The application supports replying to specific messages, similar to Facebook Messenger:
+
+- **Desktop:** Hover over any message to see the reply button
+- **Mobile:** Long press (hold for 500ms) on any message to see the reply menu
+- **Reply Preview:** When replying, a preview of the original message appears above the input field
+- **Message Display:** Replies show an inline preview of the original message with the sender's avatar and a truncated message text
+- **Navigation:** Click on a reply preview to scroll to and highlight the original message
 
 ### Database Migration
 

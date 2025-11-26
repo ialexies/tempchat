@@ -62,14 +62,30 @@ function initializeSchema(db: Database.Database) {
       timestamp INTEGER NOT NULL,
       gifUrl TEXT,
       attachments TEXT,
+      replyToId TEXT,
       createdAt INTEGER NOT NULL
     )
   `);
+
+  // Migrate existing messages table to add replyToId column if it doesn't exist
+  try {
+    // Check if column exists by trying to select it
+    db.prepare('SELECT replyToId FROM messages LIMIT 1').get();
+  } catch {
+    // Column doesn't exist, add it
+    try {
+      db.exec(`ALTER TABLE messages ADD COLUMN replyToId TEXT`);
+    } catch (error: any) {
+      // Ignore errors (column might have been added by another process)
+      console.warn('Migration note: Could not add replyToId column:', error.message);
+    }
+  }
 
   // Create indexes for better performance
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp);
     CREATE INDEX IF NOT EXISTS idx_messages_username ON messages(username);
+    CREATE INDEX IF NOT EXISTS idx_messages_replyToId ON messages(replyToId);
     CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
   `);
 }

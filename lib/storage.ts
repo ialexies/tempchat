@@ -99,8 +99,8 @@ async function migrateJsonToSqlite(db: Database.Database) {
     const messages: Message[] = JSON.parse(messagesData);
     
     const insertMessage = db.prepare(`
-      INSERT INTO messages (id, username, message, timestamp, gifUrl, attachments, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO messages (id, username, message, timestamp, gifUrl, attachments, replyToId, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const insertMany = db.transaction((messages: Message[]) => {
@@ -112,6 +112,7 @@ async function migrateJsonToSqlite(db: Database.Database) {
           message.timestamp,
           message.gifUrl || null,
           message.attachments ? JSON.stringify(message.attachments) : null,
+          message.replyToId || null,
           message.timestamp
         );
       }
@@ -287,13 +288,14 @@ export async function readMessages(): Promise<Message[]> {
   await initializeDatabase();
   const db = getDb();
   
-  const rows = db.prepare('SELECT id, username, message, timestamp, gifUrl, attachments FROM messages ORDER BY timestamp ASC').all() as Array<{
+  const rows = db.prepare('SELECT id, username, message, timestamp, gifUrl, attachments, replyToId FROM messages ORDER BY timestamp ASC').all() as Array<{
     id: string;
     username: string;
     message: string | null;
     timestamp: number;
     gifUrl: string | null;
     attachments: string | null;
+    replyToId: string | null;
   }>;
   
   return rows.map(row => ({
@@ -303,7 +305,36 @@ export async function readMessages(): Promise<Message[]> {
     timestamp: row.timestamp,
     gifUrl: row.gifUrl || undefined,
     attachments: row.attachments ? JSON.parse(row.attachments) as Attachment[] : undefined,
+    replyToId: row.replyToId || undefined,
   }));
+}
+
+// Get message by ID
+export async function getMessageById(id: string): Promise<Message | null> {
+  await initializeDatabase();
+  const db = getDb();
+  
+  const row = db.prepare('SELECT id, username, message, timestamp, gifUrl, attachments, replyToId FROM messages WHERE id = ?').get(id) as {
+    id: string;
+    username: string;
+    message: string | null;
+    timestamp: number;
+    gifUrl: string | null;
+    attachments: string | null;
+    replyToId: string | null;
+  } | undefined;
+  
+  if (!row) return null;
+  
+  return {
+    id: row.id,
+    username: row.username,
+    message: row.message || '',
+    timestamp: row.timestamp,
+    gifUrl: row.gifUrl || undefined,
+    attachments: row.attachments ? JSON.parse(row.attachments) as Attachment[] : undefined,
+    replyToId: row.replyToId || undefined,
+  };
 }
 
 // Append message to database
@@ -312,8 +343,8 @@ export async function appendMessage(message: Message): Promise<void> {
   const db = getDb();
   
   const insertMessage = db.prepare(`
-    INSERT INTO messages (id, username, message, timestamp, gifUrl, attachments, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO messages (id, username, message, timestamp, gifUrl, attachments, replyToId, createdAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
   
   insertMessage.run(
@@ -323,6 +354,7 @@ export async function appendMessage(message: Message): Promise<void> {
     message.timestamp,
     message.gifUrl || null,
     message.attachments ? JSON.stringify(message.attachments) : null,
+    message.replyToId || null,
     message.timestamp
   );
 }

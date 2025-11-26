@@ -26,6 +26,11 @@ export default function ChatPage() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [longPressMessageId, setLongPressMessageId] = useState<string | null>(null);
+  const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const lightboxImageRef = useRef<HTMLImageElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastViewedTimestampRef = useRef<number>(Date.now());
@@ -276,12 +281,12 @@ export default function ChatPage() {
     return () => clearInterval(pollInterval);
   };
 
-  const handleSendMessage = async (message: string, gifUrl?: string, attachments?: Attachment[]) => {
+  const handleSendMessage = async (message: string, gifUrl?: string, attachments?: Attachment[], replyToId?: string) => {
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, gifUrl, attachments }),
+        body: JSON.stringify({ message, gifUrl, attachments, replyToId }),
       });
 
       const data = await response.json();
@@ -292,6 +297,8 @@ export default function ChatPage() {
           lastViewedTimestampRef.current = data.message.timestamp;
           return updated;
         });
+        // Clear reply state after sending
+        setReplyingTo(null);
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -349,6 +356,75 @@ export default function ChatPage() {
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Handle long press for mobile reply
+  const handleMessageTouchStart = (messageId: string) => {
+    const timer = setTimeout(() => {
+      setLongPressMessageId(messageId);
+      setReplyingTo(messages.find(m => m.id === messageId) || null);
+      // Scroll input into view
+      setTimeout(() => {
+        const input = document.querySelector('textarea');
+        input?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }, 500); // 500ms long press
+    setLongPressTimer(timer);
+  };
+
+  const handleMessageTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleMessageTouchCancel = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  // Handle reply click
+  const handleReplyClick = (message: Message) => {
+    setReplyingTo(message);
+    setLongPressMessageId(null);
+    setHoveredMessageId(null);
+    // Clear long press timer if active
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    // Scroll input into view
+    setTimeout(() => {
+      const input = document.querySelector('textarea');
+      input?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      input?.focus();
+    }, 100);
+  };
+
+  // Handle cancel reply
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  // Scroll to original message when reply preview is clicked
+  const handleReplyPreviewClick = (messageId: string) => {
+    const messageElement = messageRefs.current[messageId];
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Highlight the message briefly
+      messageElement.classList.add('ring-2', 'ring-primary-500');
+      setTimeout(() => {
+        messageElement.classList.remove('ring-2', 'ring-primary-500');
+      }, 2000);
+    }
+  };
+
+  // Get original message for reply preview
+  const getOriginalMessage = (replyToId: string): Message | null => {
+    return messages.find(m => m.id === replyToId) || null;
   };
 
   // Handle ESC key to close lightbox and prevent body scroll
@@ -586,7 +662,13 @@ export default function ChatPage() {
                   </div>
                 )}
                 <div
-                  className={`flex gap-2 sm:gap-3 ${isOwnMessage ? 'justify-end' : 'justify-start'} message-enter`}
+                  ref={(el) => { messageRefs.current[msg.id] = el; }}
+                  className={`flex gap-2 sm:gap-3 ${isOwnMessage ? 'justify-end' : 'justify-start'} message-enter relative`}
+                  onMouseEnter={() => setHoveredMessageId(msg.id)}
+                  onMouseLeave={() => setHoveredMessageId(null)}
+                  onTouchStart={() => handleMessageTouchStart(msg.id)}
+                  onTouchEnd={handleMessageTouchEnd}
+                  onTouchCancel={handleMessageTouchCancel}
                 >
                   {/* Avatar - Only show for other users' messages, and only when it's a new user */}
                   {!isOwnMessage && showAvatar && (
@@ -601,7 +683,35 @@ export default function ChatPage() {
                   )}
                   {!isOwnMessage && !showAvatar && <div className="w-8 sm:w-10 flex-shrink-0" />}
 
-                  <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[60%] group`}>
+                  <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[60%] group relative`}>
+                    {/* Reply action menu - Desktop hover / Mobile long press */}
+                    {(hoveredMessageId === msg.id || longPressMessageId === msg.id) && (
+                      <div className={`absolute ${isOwnMessage ? 'right-full mr-2' : 'left-full ml-2'} top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[100px] animate-fade-in`}>
+                        <button
+                          onClick={() => handleReplyClick(msg)}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          aria-label="Reply to message"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                          </svg>
+                          <span>Reply</span>
+                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            aria-label="Delete message"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Delete</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     {/* Username, timestamp, and delete button */}
                     {showAvatar && (
                       <div className={`flex items-center gap-2 mb-1 px-1 ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
@@ -640,6 +750,44 @@ export default function ChatPage() {
                           : 'bg-white text-gray-800 border border-chat-border rounded-bl-md shadow-message'
                       }`}
                     >
+                      {/* Reply preview */}
+                      {msg.replyToId && (() => {
+                        const originalMsg = getOriginalMessage(msg.replyToId);
+                        if (!originalMsg) return null;
+                        const originalAvatar = getAvatarData(originalMsg.username);
+                        const isOriginalOwn = originalMsg.username === username;
+                        const previewText = originalMsg.message 
+                          ? (originalMsg.message.length > 100 ? originalMsg.message.substring(0, 100) + '...' : originalMsg.message)
+                          : originalMsg.gifUrl 
+                            ? 'GIF' 
+                            : originalMsg.attachments && originalMsg.attachments.length > 0
+                              ? `📎 ${originalMsg.attachments[0].originalName}`
+                              : 'Message';
+                        
+                        return (
+                          <div 
+                            onClick={() => handleReplyPreviewClick(msg.replyToId!)}
+                            className={`mb-2 pb-2 border-l-4 ${
+                              isOwnMessage 
+                                ? 'border-white border-opacity-50 pl-2' 
+                                : 'border-primary-500 pl-2'
+                            } cursor-pointer hover:opacity-80 transition-opacity`}
+                          >
+                            <div className={`flex items-center gap-1.5 mb-0.5 ${isOwnMessage ? 'text-white text-opacity-90' : 'text-primary-600'}`}>
+                              <div
+                                className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[8px] font-semibold flex-shrink-0"
+                                style={{ backgroundColor: originalAvatar.color }}
+                              >
+                                {originalAvatar.initials}
+                              </div>
+                              <span className="text-xs font-semibold">{originalMsg.username}</span>
+                            </div>
+                            <div className={`text-xs truncate ${isOwnMessage ? 'text-white text-opacity-75' : 'text-gray-600'}`}>
+                              {previewText}
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {/* Delete button for messages without avatar (grouped messages) */}
                       {isAdmin && !showAvatar && (
                         <button
@@ -741,7 +889,12 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} />
+      <ChatInput 
+        onSendMessage={handleSendMessage} 
+        onFileUpload={handleFileUpload}
+        replyingTo={replyingTo}
+        onCancelReply={handleCancelReply}
+      />
 
       {/* Lightbox */}
       {lightboxImage && (

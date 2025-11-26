@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { readMessages, appendMessage, deleteMessage } from '@/lib/storage';
+import { readMessages, appendMessage, deleteMessage, getMessageById } from '@/lib/storage';
 import { Message } from '@/types';
 import { broadcastNewMessages, broadcastMessageDeleted } from '@/lib/messageBroadcast';
 
@@ -27,13 +27,24 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { message, gifUrl, attachments } = body;
+    const { message, gifUrl, attachments, replyToId } = body;
 
     if (!message && !gifUrl && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
         { error: 'Message, GIF, or attachment is required' },
         { status: 400 }
       );
+    }
+
+    // Validate replyToId if provided
+    if (replyToId) {
+      const originalMessage = await getMessageById(replyToId);
+      if (!originalMessage) {
+        return NextResponse.json(
+          { error: 'Original message not found' },
+          { status: 404 }
+        );
+      }
     }
 
     const newMessage: Message = {
@@ -43,6 +54,7 @@ export async function POST(request: NextRequest) {
       timestamp: Date.now(),
       gifUrl,
       attachments: attachments || [],
+      replyToId: replyToId || undefined,
     };
 
     await appendMessage(newMessage);
