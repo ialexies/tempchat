@@ -552,7 +552,7 @@ export default function ChatPage() {
   const userAvatar = getAvatarData(username);
 
   return (
-    <div className="flex flex-col h-screen bg-chat-background chat-silhouette-bg">
+    <div className="flex flex-col h-screen bg-chat-background chat-silhouette-bg overflow-x-hidden">
       {/* Header */}
       <div className="bg-white dark:bg-chat-background-dark border-b border-chat-border dark:border-chat-border-dark shadow-soft">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
@@ -631,7 +631,7 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 space-y-3 sm:space-y-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
@@ -686,7 +686,7 @@ export default function ChatPage() {
                   <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[60%] group relative`}>
                     {/* Reply action menu - Desktop hover / Mobile long press */}
                     {(hoveredMessageId === msg.id || longPressMessageId === msg.id) && (
-                      <div className={`absolute ${isOwnMessage ? 'right-full mr-2' : 'left-full ml-2'} top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[100px] animate-fade-in`}>
+                      <div className={`absolute ${isOwnMessage ? 'left-full ml-2' : 'right-full mr-2'} top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[44px] sm:min-w-[100px] animate-fade-in`}>
                         <button
                           onClick={() => handleReplyClick(msg)}
                           className="w-full px-4 py-2 text-left text-sm text-text-primary dark:text-text-primary-dark hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
@@ -695,7 +695,7 @@ export default function ChatPage() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                           </svg>
-                          <span>Reply</span>
+                          <span className="hidden sm:inline">Reply</span>
                         </button>
                         {isAdmin && (
                           <button
@@ -706,7 +706,7 @@ export default function ChatPage() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            <span>Delete</span>
+                            <span className="hidden sm:inline">Delete</span>
                           </button>
                         )}
                       </div>
@@ -720,29 +720,17 @@ export default function ChatPage() {
                           <span className="mx-1">•</span>
                           <span>{formatTime(msg.timestamp)}</span>
                         </div>
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
-                            aria-label="Delete message"
-                            title="Delete message"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
                       </div>
                     )}
 
                     {/* Message bubble */}
                     <div
-                      className={`relative rounded-2xl ${((msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)) ||
-                          (!msg.gifUrl && !msg.message && msg.attachments && msg.attachments.length > 0 &&
-                            msg.attachments.every(att => att.mimeType?.startsWith('image/')))
-                        )
-                          ? ''
-                          : 'px-3 py-2 sm:px-4 sm:py-2.5'
+                      className={`relative rounded-2xl overflow-hidden ${((msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)) ||
+                        (!msg.gifUrl && !msg.message && msg.attachments && msg.attachments.length > 0 &&
+                          msg.attachments.every(att => att.mimeType?.startsWith('image/')))
+                      )
+                        ? ''
+                        : 'px-3 py-2 sm:px-4 sm:py-2.5'
                         } ${isOwnMessage
                           ? 'bg-chat-own text-white rounded-br-md shadow-none outline-none border-0'
                           : 'bg-white dark:bg-chat-other-dark text-gray-800 dark:text-text-primary-dark border border-chat-border dark:border-chat-border-dark rounded-bl-md shadow-message dark:shadow-message-dark'
@@ -766,8 +754,8 @@ export default function ChatPage() {
                           <div
                             onClick={() => handleReplyPreviewClick(msg.replyToId!)}
                             className={`mb-2 pb-2 border-l-4 ${isOwnMessage
-                                ? 'border-white border-opacity-50 pl-2'
-                                : 'border-primary-500 pl-2'
+                              ? 'border-white border-opacity-50 pl-2'
+                              : 'border-primary-500 pl-2'
                               } cursor-pointer hover:opacity-80 transition-opacity overflow-hidden`}
                           >
                             <div className={`flex items-center gap-1.5 mb-0.5 overflow-hidden ${isOwnMessage ? 'text-white text-opacity-90' : 'text-primary-600'}`}>
@@ -785,29 +773,16 @@ export default function ChatPage() {
                           </div>
                         );
                       })()}
-                      {/* Delete button for messages without avatar (grouped messages) */}
-                      {isAdmin && !showAvatar && (
-                        <button
-                          onClick={() => handleDeleteMessage(msg.id)}
-                          className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow-medium z-10"
-                          aria-label="Delete message"
-                          title="Delete message"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      )}
                       {msg.gifUrl && (
                         <div className={`relative w-full ${msg.message || (msg.attachments && msg.attachments.length > 0) ? 'mb-2 last:mb-0' : ''}`}>
                           <img
                             src={msg.gifUrl}
                             alt="GIF"
                             className={`w-full h-auto ${msg.message || (msg.attachments && msg.attachments.length > 0)
-                                ? 'rounded-lg'
-                                : isOwnMessage
-                                  ? 'rounded-2xl rounded-br-md'
-                                  : 'rounded-2xl rounded-bl-md'
+                              ? 'rounded-lg'
+                              : isOwnMessage
+                                ? 'rounded-2xl rounded-br-md'
+                                : 'rounded-2xl rounded-bl-md'
                               }`}
                             style={{ maxWidth: '100%', height: 'auto' }}
                             loading="lazy"
@@ -816,7 +791,7 @@ export default function ChatPage() {
                       )}
 
                       {msg.message && (
-                        <div className={`whitespace-pre-wrap break-words text-sm sm:text-base ${isOwnMessage ? 'text-white' : 'text-text-primary dark:text-text-primary-dark'}`}>
+                        <div className={`whitespace-pre-wrap break-words overflow-wrap-anywhere text-sm sm:text-base ${isOwnMessage ? 'text-white' : 'text-text-primary dark:text-text-primary-dark'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           {msg.message}
                         </div>
                       )}
@@ -841,12 +816,12 @@ export default function ChatPage() {
                                       width={800}
                                       height={600}
                                       className={`w-full ${isImageOnly
-                                          ? isLastImage
-                                            ? isOwnMessage
-                                              ? 'rounded-2xl rounded-br-md'
-                                              : 'rounded-2xl rounded-bl-md'
-                                            : 'rounded-none'
-                                          : 'max-w-full rounded-lg shadow-soft'
+                                        ? isLastImage
+                                          ? isOwnMessage
+                                            ? 'rounded-2xl rounded-br-md'
+                                            : 'rounded-2xl rounded-bl-md'
+                                          : 'rounded-none'
+                                        : 'max-w-full rounded-lg shadow-soft'
                                         }`}
                                       unoptimized
                                     />
@@ -856,12 +831,12 @@ export default function ChatPage() {
                                     href={att.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className={`text-sm sm:text-base flex items-center gap-2 hover:opacity-80 transition-opacity ${isOwnMessage ? 'text-white' : 'text-primary-600'
+                                    className={`text-sm sm:text-base flex items-center gap-2 hover:opacity-80 transition-opacity overflow-hidden ${isOwnMessage ? 'text-white' : 'text-primary-600'
                                       }`}
                                   >
-                                    <span>📎</span>
-                                    <span className="truncate">{att.originalName}</span>
-                                    <span className="text-xs opacity-75">({(att.size / 1024).toFixed(1)} KB)</span>
+                                    <span className="flex-shrink-0">📎</span>
+                                    <span className="truncate min-w-0">{att.originalName}</span>
+                                    <span className="text-xs opacity-75 flex-shrink-0">({(att.size / 1024).toFixed(1)} KB)</span>
                                   </a>
                                 )}
                               </div>
