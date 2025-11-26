@@ -14,7 +14,7 @@ A modern, real-time chat application built with Next.js 14, TypeScript, and SQLi
 - ✅ **Admin Panel** - Full user management with admin account
 - ✅ **Docker Support** - Easy deployment with Docker and Docker Compose
 - ✅ **TypeScript** - Full type safety throughout the application
-- ✅ **Responsive Design** - Modern UI with Tailwind CSS
+- ✅ **Responsive Design** - Modern UI with Tailwind CSS and subtle silhouette background pattern
 
 ## 📋 Table of Contents
 
@@ -241,6 +241,16 @@ The application supports replying to specific messages, similar to Facebook Mess
 - **Reply Preview:** When replying, a preview of the original message appears above the input field
 - **Message Display:** Replies show an inline preview of the original message with the sender's avatar and a truncated message text
 - **Navigation:** Click on a reply preview to scroll to and highlight the original message
+
+### Visual Design
+
+The application features a modern, clean interface with attention to detail:
+
+- **Silhouette Background:** Subtle chat bubble pattern in the background for visual interest without compromising readability
+- **Responsive Layout:** Optimized for all screen sizes from mobile to desktop
+- **Smooth Animations:** Message entry animations and smooth transitions throughout
+- **Dark Mode Support:** Automatic dark mode detection with appropriate color schemes
+- **Accessibility:** Proper ARIA labels, keyboard navigation, and touch-friendly targets
 
 ### Database Migration
 

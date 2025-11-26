@@ -552,7 +552,7 @@ export default function ChatPage() {
   const userAvatar = getAvatarData(username);
 
   return (
-    <div className="flex flex-col h-screen bg-chat-background">
+    <div className="flex flex-col h-screen bg-chat-background chat-silhouette-bg">
       {/* Header */}
       <div className="bg-white border-b border-chat-border shadow-soft">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">

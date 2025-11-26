@@ -116,3 +116,36 @@ html {
   }
 }
 
+/* Silhouette background pattern - Chat bubbles */
+.chat-silhouette-bg {
+  position: relative;
+  background-color: var(--chat-bg);
+}
+
+.chat-silhouette-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cpath d='M50 80c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15H70l-15 10v-10c-8.284 0-15-6.716-15-15V80z' fill='%23000000'/%3E%3Cpath d='M180 120c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15h-50l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23000000'/%3E%3Cpath d='M50 200c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15H70l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23000000'/%3E%3Cpath d='M180 240c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15h-50l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23000000'/%3E%3Cpath d='M200 50c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15h-50l-15 10v-10c-8.284 0-15-6.716-15-15V50z' fill='%23000000'/%3E%3Cpath d='M30 150c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15H50l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23000000'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 300px 300px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chat-silhouette-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat-silhouette-bg::before {
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cpath d='M50 80c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15H70l-15 10v-10c-8.284 0-15-6.716-15-15V80z' fill='%23ffffff'/%3E%3Cpath d='M180 120c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15h-50l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23ffffff'/%3E%3Cpath d='M50 200c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15H70l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23ffffff'/%3E%3Cpath d='M180 240c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15h-50l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23ffffff'/%3E%3Cpath d='M200 50c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15h-50l-15 10v-10c-8.284 0-15-6.716-15-15V50z' fill='%23ffffff'/%3E%3Cpath d='M30 150c0-8.284 6.716-15 15-15h50c8.284 0 15 6.716 15 15v30c0 8.284-6.716 15-15 15H50l-15 10v-10c-8.284 0-15-6.716-15-15v-30z' fill='%23ffffff'/%3E%3C/g%3E%3C/svg%3E");
+  }
+}
+
