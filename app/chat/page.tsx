@@ -21,6 +21,12 @@ export default function ChatPage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isTabFocused, setIsTabFocused] = useState(true);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const lightboxImageRef = useRef<HTMLImageElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastViewedTimestampRef = useRef<number>(Date.now());
   const router = useRouter();
@@ -345,6 +351,117 @@ export default function ChatPage() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Handle ESC key to close lightbox and prevent body scroll
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && lightboxImage) {
+        setLightboxImage(null);
+        setZoom(1);
+        setPosition({ x: 0, y: 0 });
+      }
+    };
+    
+    if (lightboxImage) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleEscape);
+    } else {
+      document.body.style.overflow = '';
+      setZoom(1);
+      setPosition({ x: 0, y: 0 });
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [lightboxImage]);
+
+  // Handle mouse wheel zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!lightboxImage) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(1, Math.min(5, zoom * delta));
+    setZoom(newZoom);
+    if (newZoom === 1) {
+      setPosition({ x: 0, y: 0 });
+    }
+  };
+
+  // Handle mouse drag for panning when zoomed
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Handle double-click to zoom
+  const handleDoubleClick = () => {
+    if (zoom === 1) {
+      setZoom(2);
+    } else {
+      setZoom(1);
+      setPosition({ x: 0, y: 0 });
+    }
+  };
+
+  // Handle touch events for pinch-to-zoom
+  const [touchStart, setTouchStart] = useState<{ distance: number; center: { x: number; y: number } } | null>(null);
+
+  const getTouchDistance = (touches: React.TouchList) => {
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    return Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+  };
+
+  const getTouchCenter = (touches: React.TouchList) => {
+    const touch1 = touches[0];
+    const touch2 = touches[1];
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const distance = getTouchDistance(e.touches);
+      const center = getTouchCenter(e.touches);
+      setTouchStart({ distance, center });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchStart) {
+      e.preventDefault();
+      const distance = getTouchDistance(e.touches);
+      const scale = distance / touchStart.distance;
+      const newZoom = Math.max(1, Math.min(5, zoom * scale));
+      setZoom(newZoom);
+      if (newZoom === 1) {
+        setPosition({ x: 0, y: 0 });
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStart(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -511,7 +628,10 @@ export default function ChatPage() {
                     {/* Message bubble */}
                     <div
                       className={`relative rounded-2xl ${
-                        msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)
+                        ((msg.gifUrl && !msg.message && (!msg.attachments || msg.attachments.length === 0)) ||
+                         (!msg.gifUrl && !msg.message && msg.attachments && msg.attachments.length > 0 && 
+                          msg.attachments.every(att => att.mimeType?.startsWith('image/')))
+                        )
                           ? ''
                           : 'px-3 py-2 sm:px-4 sm:py-2.5'
                       } ${
@@ -558,17 +678,33 @@ export default function ChatPage() {
                       )}
                       
                       {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="mt-2 space-y-2">
-                          {msg.attachments.map((att, attIndex) => (
-                            <div key={attIndex} className={attIndex > 0 ? 'border-t border-opacity-20 pt-2 mt-2' : ''}>
+                        <div className={msg.message || msg.gifUrl ? 'mt-2 space-y-2' : 'space-y-0'}>
+                          {msg.attachments.map((att, attIndex) => {
+                            const isImageOnly = !msg.gifUrl && !msg.message && msg.attachments && 
+                              msg.attachments.length > 0 && msg.attachments.every(a => a.mimeType?.startsWith('image/'));
+                            const isLastImage = attIndex === (msg.attachments?.length ?? 0) - 1;
+                            
+                            return (
+                            <div key={attIndex} className={attIndex > 0 && !isImageOnly ? 'border-t border-opacity-20 pt-2 mt-2' : ''}>
                               {att.mimeType?.startsWith('image/') ? (
-                                <div className="relative w-full">
+                                <div 
+                                  className="relative w-full cursor-pointer"
+                                  onClick={() => setLightboxImage(att.url)}
+                                >
                                   <Image
                                     src={att.url}
                                     alt={att.originalName}
                                     width={800}
                                     height={600}
-                                    className="max-w-full rounded-lg shadow-soft"
+                                    className={`w-full ${
+                                      isImageOnly
+                                        ? isLastImage
+                                          ? isOwnMessage
+                                            ? 'rounded-2xl rounded-br-md'
+                                            : 'rounded-2xl rounded-bl-md'
+                                          : 'rounded-none'
+                                        : 'max-w-full rounded-lg shadow-soft'
+                                    }`}
                                     unoptimized
                                   />
                                 </div>
@@ -587,7 +723,8 @@ export default function ChatPage() {
                                 </a>
                               )}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -605,6 +742,73 @@ export default function ChatPage() {
 
       {/* Input */}
       <ChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} />
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4"
+          onClick={() => {
+            if (zoom === 1) {
+              setLightboxImage(null);
+            }
+          }}
+        >
+          <button
+            onClick={() => {
+              setLightboxImage(null);
+              setZoom(1);
+              setPosition({ x: 0, y: 0 });
+            }}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
+            aria-label="Close lightbox"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          {zoom > 1 && (
+            <button
+              onClick={() => {
+                setZoom(1);
+                setPosition({ x: 0, y: 0 });
+              }}
+              className="absolute top-4 left-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
+              aria-label="Reset zoom"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
+          <div
+            className="relative max-w-full max-h-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+          >
+            <img
+              ref={lightboxImageRef}
+              src={lightboxImage}
+              alt="Lightbox"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg select-none"
+              style={{
+                transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
+                transformOrigin: 'center center',
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+              }}
+              onDoubleClick={handleDoubleClick}
+              draggable={false}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

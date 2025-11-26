@@ -100,6 +100,31 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
     }, 200);
   };
 
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData.items;
+    
+    // Check if clipboard contains image data
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.type.indexOf('image') !== -1) {
+        e.preventDefault();
+        
+        const file = item.getAsFile();
+        if (!file) return;
+        
+        try {
+          const uploadedFile = await onFileUpload(file);
+          setAttachments(prev => [...prev, uploadedFile]);
+        } catch (error) {
+          console.error('Paste image upload error:', error);
+          alert('Failed to upload pasted image');
+        }
+        return;
+      }
+    }
+  };
+
   const handleMenuAction = (action: 'emoji' | 'gif' | 'attach') => {
     setShowActionMenu(false);
     if (action === 'emoji') {
@@ -149,6 +174,7 @@ export default function ChatInput({ onSendMessage, onFileUpload }: ChatInputProp
               onChange={(e) => setMessage(e.target.value)}
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
+              onPaste={handlePaste}
               placeholder="Type a message..."
               rows={1}
               className="w-full px-3 py-2.5 sm:px-4 sm:py-3 border border-chat-border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-sm sm:text-base transition-all shadow-soft focus:shadow-medium resize-none min-h-[44px] max-h-[150px]"
