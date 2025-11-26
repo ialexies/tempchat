@@ -124,11 +124,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-indigo-50 px-4 sm:px-6 py-8 sm:py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50 px-4 sm:px-6 py-8 sm:py-12">
       <div className="bg-white p-6 sm:p-8 md:p-10 rounded-2xl shadow-large w-full max-w-md animate-fade-in">
         {/* Logo/Title Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-600 mb-4 shadow-medium">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 mb-4 shadow-medium">
             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
@@ -203,7 +203,7 @@ export default function LoginPage() {
             </div>
           </div>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 flex items-center gap-2 animate-fade-in">
+            <div className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-xl px-4 py-3 flex items-center gap-2 animate-fade-in">
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -219,7 +219,7 @@ export default function LoginPage() {
               console.log('[LoginPage] Current username:', username);
               console.log('[LoginPage] Current password length:', password.length);
             }}
-            className="w-full bg-primary-600 text-white py-3 sm:py-3.5 px-4 rounded-xl hover:bg-primary-700 active:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-medium hover:shadow-large font-semibold text-sm sm:text-base"
+            className="w-full bg-primary-500 text-white py-3 sm:py-3.5 px-4 rounded-xl hover:bg-primary-600 active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-medium hover:shadow-large font-semibold text-sm sm:text-base"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

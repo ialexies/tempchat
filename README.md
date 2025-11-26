@@ -14,7 +14,7 @@ A modern, real-time chat application built with Next.js 14, TypeScript, and SQLi
 - ✅ **Admin Panel** - Full user management with admin account
 - ✅ **Docker Support** - Easy deployment with Docker and Docker Compose
 - ✅ **TypeScript** - Full type safety throughout the application
-- ✅ **Responsive Design** - Modern UI with Tailwind CSS and subtle silhouette background pattern
+- ✅ **Responsive Design** - Modern UI with Tailwind CSS, balanced color scheme, and subtle silhouette background pattern
 
 ## 📋 Table of Contents
 
@@ -190,12 +190,28 @@ See [API.md](./API.md) for complete API documentation.
 
 - **Framework:** Next.js 14 (App Router)
 - **Language:** TypeScript (strict mode)
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS with custom color palette
 - **Authentication:** JWT with httpOnly cookies
 - **Password Hashing:** bcryptjs
 - **Real-time:** Server-Sent Events (SSE)
 - **Database:** SQLite (better-sqlite3)
 - **Storage:** File-based SQLite database
+
+### Color Scheme
+
+The application uses a balanced color palette inspired by modern messaging applications:
+
+- **Primary Color:** `#0084ff` (Messenger-style blue) for own messages and primary actions
+- **Message Colors:**
+  - Own messages: Blue (`#0084ff`) with white text
+  - Other messages: White (light mode) / Dark gray (`#2a2f3a` dark mode) with dark text
+- **Background:** Warm gray (`#f0f2f5` light mode, `#18191a` dark mode)
+- **Avatar Colors:** 8 distinct muted colors for user identification (indigo, purple, cyan, green, amber, red, slate gray, stone gray)
+- **Action Buttons:**
+  - Notifications: Amber (`#f59e0b`)
+  - Logout/Delete: Red (`#ef4444`)
+  - Primary actions: Blue (`#0084ff`)
+- **Dark Mode:** Softer, warmer tones that reduce eye strain while maintaining excellent contrast ratios (WCAG AA compliant)
 
 ### Key Design Decisions
 
@@ -246,11 +262,16 @@ The application supports replying to specific messages, similar to Facebook Mess
 
 The application features a modern, clean interface with attention to detail:
 
+- **Color Scheme:** Balanced palette inspired by modern messaging apps (Messenger, WhatsApp, Slack, Discord)
+  - **Primary Color:** Messenger-style blue (`#0084ff`) for own messages and primary actions
+  - **Avatar Colors:** 8 distinct muted colors (indigo, purple, cyan, green, amber, red, and grays) for user identification
+  - **Action Buttons:** Context-appropriate colors (amber for notifications, red for logout/delete actions)
+  - **Background:** Warm gray tones (`#f0f2f5` light mode, `#18191a` dark mode) for comfortable viewing
 - **Silhouette Background:** Subtle chat bubble pattern in the background for visual interest without compromising readability
 - **Responsive Layout:** Optimized for all screen sizes from mobile to desktop
 - **Smooth Animations:** Message entry animations and smooth transitions throughout
-- **Dark Mode Support:** Automatic dark mode detection with appropriate color schemes
-- **Accessibility:** Proper ARIA labels, keyboard navigation, and touch-friendly targets
+- **Dark Mode Support:** Automatic dark mode detection with softer, warmer color schemes that reduce eye strain
+- **Accessibility:** WCAG AA compliant contrast ratios, proper ARIA labels, keyboard navigation, and touch-friendly targets
 
 ### Database Migration
 

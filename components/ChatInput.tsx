@@ -23,8 +23,7 @@ export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onC
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendMessage = () => {
     if (message.trim() || attachments.length > 0) {
       onSendMessage(message, undefined, attachments, replyingTo?.id);
       setMessage('');
@@ -33,6 +32,11 @@ export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onC
       setShowGifPicker(false);
       onCancelReply?.();
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage();
   };
 
   const handleEmojiSelect = (emoji: string) => {
@@ -199,7 +203,7 @@ export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onC
                 </span>
                 <button
                   onClick={() => removeAttachment(index)}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                   aria-label="Remove attachment"
                 >
                   <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,6 +224,12 @@ export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onC
               onFocus={handleInputFocus}
               onBlur={handleInputBlur}
               onPaste={handlePaste}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
               placeholder="Type a message..."
               rows={1}
               className="w-full px-3 py-2.5 sm:px-4 sm:py-3 border border-chat-border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-sm sm:text-base transition-all shadow-soft focus:shadow-medium resize-none min-h-[44px] max-h-[150px]"
@@ -356,7 +366,7 @@ export default function ChatInput({ onSendMessage, onFileUpload, replyingTo, onC
             <button
               type="submit"
               disabled={!message.trim() && attachments.length === 0}
-              className="px-3 sm:px-4 md:px-6 h-11 bg-primary-600 text-white rounded-xl hover:bg-primary-700 active:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all shadow-soft hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600 disabled:active:scale-100 active:scale-95 text-sm sm:text-base font-medium"
+              className="px-3 sm:px-4 md:px-6 h-11 bg-primary-500 text-white rounded-xl hover:bg-primary-600 active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-all shadow-soft hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500 disabled:active:scale-100 active:scale-95 text-sm sm:text-base font-medium"
               aria-label="Send message"
             >
               <span className="hidden md:inline">Send</span>

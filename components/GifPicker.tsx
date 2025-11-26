@@ -88,12 +88,12 @@ export default function GifPicker({ onSelect }: GifPickerProps) {
               }
             }}
             placeholder="Search GIFs..."
-            className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+            className="flex-1 px-2 sm:px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-primary-400 focus:border-transparent text-sm"
           />
           <button
             type="button"
             onClick={handleSearch}
-            className="px-2.5 sm:px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
+            className="px-2.5 sm:px-3 py-1.5 bg-primary-500 text-white rounded text-sm hover:bg-primary-600 active:bg-primary-700 transition-colors"
           >
             Search
           </button>
@@ -106,7 +106,7 @@ export default function GifPicker({ onSelect }: GifPickerProps) {
         )}
         {error && (
           <div className="text-center py-4 px-3">
-            <div className="text-red-500 text-sm font-medium mb-1">{error}</div>
+            <div className="text-rose-500 text-sm font-medium mb-1">{error}</div>
             <div className="text-xs text-gray-500">
               {error.includes('API key') && (
                 <span>Please configure NEXT_PUBLIC_GIPHY_API_KEY in your environment variables.</span>
@@ -123,7 +123,7 @@ export default function GifPicker({ onSelect }: GifPickerProps) {
               <button
                 key={gif.id}
                 onClick={() => onSelect(gif.images.fixed_height.url)}
-                className="relative aspect-square overflow-hidden rounded hover:ring-2 hover:ring-indigo-500 active:ring-2 active:ring-indigo-500 transition-all"
+                className="relative aspect-square overflow-hidden rounded hover:ring-2 hover:ring-primary-500 active:ring-2 active:ring-primary-500 transition-all"
               >
                 <Image
                   src={gif.images.fixed_height.url}

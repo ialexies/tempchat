@@ -151,7 +151,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6">
           <div className="flex justify-between items-center mb-6">
@@ -165,7 +165,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
               >
                 {showAddForm ? 'Cancel' : 'Add User'}
               </button>
@@ -173,7 +173,7 @@ export default function AdminPage() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded">
               {error}
             </div>
           )}
@@ -190,7 +190,7 @@ export default function AdminPage() {
                     type="text"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400"
                     required
                     minLength={3}
                   />
@@ -203,7 +203,7 @@ export default function AdminPage() {
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-400"
                     required
                     minLength={6}
                   />
@@ -222,7 +222,7 @@ export default function AdminPage() {
                 </div>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
                 >
                   Create User
                 </button>
@@ -245,7 +245,7 @@ export default function AdminPage() {
                     <td className="border border-gray-300 px-4 py-2 font-medium">
                       {user.username}
                       {user.isAdmin && (
-                        <span className="ml-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">
+                        <span className="ml-2 px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded">
                           Admin
                         </span>
                       )}
@@ -264,7 +264,7 @@ export default function AdminPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setEditingUser(user.username)}
-                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                            className="px-3 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 text-sm"
                           >
                             Edit
                           </button>
@@ -343,7 +343,7 @@ function EditUserForm({
       <div className="flex gap-2">
         <button
           type="submit"
-          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+          className="px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 text-sm"
         >
           Save
         </button>

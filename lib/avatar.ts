@@ -4,17 +4,17 @@
  * @returns A hex color string
  */
 export function getAvatarColor(username: string): string {
+  // Balanced color palette - muted but vibrant enough to feel alive
+  // Colors chosen for good contrast with white text and pleasant visual distinction
   const colors = [
-    '#6366f1', // indigo
-    '#8b5cf6', // violet
-    '#ec4899', // pink
-    '#f59e0b', // amber
-    '#10b981', // emerald
-    '#3b82f6', // blue
-    '#f97316', // orange
-    '#14b8a6', // teal
-    '#a855f7', // purple
-    '#ef4444', // red
+    '#6366f1', // Indigo (primary brand color)
+    '#8b5cf6', // Soft purple
+    '#06b6d4', // Muted cyan
+    '#10b981', // Muted green
+    '#f59e0b', // Muted amber
+    '#ef4444', // Muted red
+    '#64748b', // Slate gray
+    '#78716c', // Stone gray
   ];
 
   // Generate a consistent index from the username

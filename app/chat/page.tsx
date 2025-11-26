@@ -540,10 +540,10 @@ export default function ChatPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-chat-background dark:bg-chat-background-dark">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-          <div className="text-gray-500 text-sm">Loading...</div>
+          <div className="w-8 h-8 border-4 border-primary-200 border-t-chat-own rounded-full animate-spin"></div>
+          <div className="text-text-secondary dark:text-text-secondary-dark text-sm">Loading...</div>
         </div>
       </div>
     );
@@ -554,12 +554,12 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-chat-background chat-silhouette-bg">
       {/* Header */}
-      <div className="bg-white border-b border-chat-border shadow-soft">
+      <div className="bg-white dark:bg-chat-background-dark border-b border-chat-border dark:border-chat-border-dark shadow-soft">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3 sm:py-4">
             {/* Logo and Title */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">TempChat</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-text-primary dark:text-text-primary-dark">TempChat</h1>
             </div>
 
             {/* User Info and Actions */}
@@ -568,7 +568,7 @@ export default function ChatPage() {
               {notificationPermission !== 'granted' && 'Notification' in window && (
                 <button
                   onClick={handleRequestNotificationPermission}
-                  className="px-2 py-1.5 sm:px-3 sm:py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-soft hover:shadow-medium"
+                  className="px-2 py-1.5 sm:px-3 sm:py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 shadow-soft hover:shadow-medium"
                   title="Enable notifications"
                   aria-label="Enable notifications"
                 >
@@ -586,10 +586,10 @@ export default function ChatPage() {
                   {userAvatar.initials}
                 </div>
                 <div className="hidden md:block">
-                  <div className="text-xs text-gray-500">Logged in as</div>
-                  <div className="text-sm font-semibold text-gray-800">{username}</div>
+                  <div className="text-xs text-text-secondary dark:text-text-secondary-dark">Logged in as</div>
+                  <div className="text-sm font-semibold text-text-primary dark:text-text-primary-dark">{username}</div>
                 </div>
-                <div className="sm:block md:hidden text-sm text-gray-700 font-medium">
+                <div className="sm:block md:hidden text-sm text-text-primary dark:text-text-primary-dark font-medium">
                   {username}
                 </div>
               </div>
@@ -608,7 +608,7 @@ export default function ChatPage() {
               {isAdmin && (
                 <button
                   onClick={() => router.push('/admin')}
-                  className="px-3 py-2 sm:px-4 sm:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-200 shadow-soft hover:shadow-medium text-sm sm:text-base font-medium"
+                  className="px-3 py-2 sm:px-4 sm:py-2 bg-chat-own text-white rounded-lg hover:opacity-90 active:opacity-80 transition-all duration-200 shadow-soft hover:shadow-medium text-sm sm:text-base font-medium"
                   aria-label="Admin Panel"
                 >
                   <span className="hidden sm:inline">Admin Panel</span>
@@ -619,7 +619,7 @@ export default function ChatPage() {
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="px-3 py-2 sm:px-4 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-200 shadow-soft hover:shadow-medium text-sm sm:text-base font-medium"
+                className="px-3 py-2 sm:px-4 sm:py-2 bg-red-500 hover:bg-red-600 active:bg-red-600 text-white rounded-lg transition-all duration-200 shadow-soft hover:shadow-medium text-sm sm:text-base font-medium"
                 aria-label="Logout"
               >
                 <span className="hidden sm:inline">Logout</span>
@@ -635,13 +635,13 @@ export default function ChatPage() {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 space-y-3 sm:space-y-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No messages yet</h3>
-              <p className="text-sm sm:text-base text-gray-500 max-w-sm">Start the conversation by sending a message!</p>
+              <h3 className="text-lg sm:text-xl font-semibold text-text-primary dark:text-text-primary-dark mb-2">No messages yet</h3>
+              <p className="text-sm sm:text-base text-text-secondary dark:text-text-secondary-dark max-w-sm">Start the conversation by sending a message!</p>
             </div>
           )}
           {messages.map((msg, index) => {
@@ -656,7 +656,7 @@ export default function ChatPage() {
               <div key={msg.id}>
                 {showTimeSeparator && index > 0 && (
                   <div className="flex items-center justify-center my-4 sm:my-6">
-                    <div className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                    <div className="text-xs text-text-secondary dark:text-text-secondary-dark bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
                       {new Date(msg.timestamp).toLocaleDateString()} {formatTime(msg.timestamp)}
                     </div>
                   </div>
@@ -686,10 +686,10 @@ export default function ChatPage() {
                   <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%] md:max-w-[60%] group relative`}>
                     {/* Reply action menu - Desktop hover / Mobile long press */}
                     {(hoveredMessageId === msg.id || longPressMessageId === msg.id) && (
-                      <div className={`absolute ${isOwnMessage ? 'right-full mr-2' : 'left-full ml-2'} top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[100px] animate-fade-in`}>
+                      <div className={`absolute ${isOwnMessage ? 'right-full mr-2' : 'left-full ml-2'} top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[100px] animate-fade-in`}>
                         <button
                           onClick={() => handleReplyClick(msg)}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          className="w-full px-4 py-2 text-left text-sm text-text-primary dark:text-text-primary-dark hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
                           aria-label="Reply to message"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -700,7 +700,7 @@ export default function ChatPage() {
                         {isAdmin && (
                           <button
                             onClick={() => handleDeleteMessage(msg.id)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                             aria-label="Delete message"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -715,7 +715,7 @@ export default function ChatPage() {
                     {/* Username, timestamp, and delete button */}
                     {showAvatar && (
                       <div className={`flex items-center gap-2 mb-1 px-1 ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
-                        <div className={`text-xs text-gray-500 ${isOwnMessage ? 'text-right' : 'text-left'}`}>
+                        <div className={`text-xs text-text-secondary dark:text-text-secondary-dark ${isOwnMessage ? 'text-right' : 'text-left'}`}>
                           <span className="font-semibold">{msg.username}</span>
                           <span className="mx-1">•</span>
                           <span>{formatTime(msg.timestamp)}</span>
@@ -723,7 +723,7 @@ export default function ChatPage() {
                         {isAdmin && (
                           <button
                             onClick={() => handleDeleteMessage(msg.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                             aria-label="Delete message"
                             title="Delete message"
                           >
@@ -746,8 +746,8 @@ export default function ChatPage() {
                           : 'px-3 py-2 sm:px-4 sm:py-2.5'
                       } ${
                         isOwnMessage
-                          ? 'bg-primary-600 text-white rounded-br-md shadow-none outline-none border-0'
-                          : 'bg-white text-gray-800 border border-chat-border rounded-bl-md shadow-message'
+                          ? 'bg-chat-own text-white rounded-br-md shadow-none outline-none border-0'
+                          : 'bg-white dark:bg-chat-other-dark text-gray-800 dark:text-text-primary-dark border border-chat-border dark:border-chat-border-dark rounded-bl-md shadow-message dark:shadow-message-dark'
                       }`}
                     >
                       {/* Reply preview */}
@@ -782,7 +782,7 @@ export default function ChatPage() {
                               </div>
                               <span className="text-xs font-semibold">{originalMsg.username}</span>
                             </div>
-                            <div className={`text-xs truncate ${isOwnMessage ? 'text-white text-opacity-75' : 'text-gray-600'}`}>
+                            <div className={`text-xs truncate ${isOwnMessage ? 'text-white text-opacity-75' : 'text-text-secondary dark:text-text-secondary-dark'}`}>
                               {previewText}
                             </div>
                           </div>
@@ -820,7 +820,7 @@ export default function ChatPage() {
                       )}
                       
                       {msg.message && (
-                        <div className={`whitespace-pre-wrap break-words text-sm sm:text-base ${isOwnMessage ? 'text-white' : 'text-gray-800'}`}>
+                        <div className={`whitespace-pre-wrap break-words text-sm sm:text-base ${isOwnMessage ? 'text-white' : 'text-text-primary dark:text-text-primary-dark'}`}>
                           {msg.message}
                         </div>
                       )}

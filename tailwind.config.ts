@@ -22,10 +22,20 @@ const config: Config = {
           900: '#312e81',
         },
         chat: {
-          own: '#6366f1',
+          own: '#0084ff', // Messenger-style vibrant blue
+          'own-dark': '#818cf8', // Lighter indigo for dark mode
           other: '#ffffff',
-          background: '#f8fafc',
-          border: '#e2e8f0',
+          'other-dark': '#2a2f3a', // Warmer dark gray for dark mode
+          background: '#f0f2f5', // Messenger-style warm gray
+          'background-dark': '#18191a', // Softer dark gray (not pure black)
+          border: '#e4e6eb', // Soft gray border
+          'border-dark': '#3a3b3c', // Subtle dark border
+        },
+        text: {
+          primary: '#050505', // Soft black for light mode
+          'primary-dark': '#e4e6eb', // Off-white for dark mode
+          secondary: '#65676b', // Gray for secondary text
+          'secondary-dark': '#b0b3b8', // Light gray for dark mode
         },
       },
       spacing: {
@@ -38,6 +48,7 @@ const config: Config = {
         'medium': '0 4px 12px rgba(0, 0, 0, 0.1)',
         'large': '0 8px 24px rgba(0, 0, 0, 0.12)',
         'message': '0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.08)',
+        'message-dark': '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
         'message-own': 'none',
       },
       borderRadius: {
